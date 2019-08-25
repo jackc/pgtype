@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgio"
-	errors "golang.org/x/xerrors"
+	errors "github.com/jackc/pgtype/errors"
 )
 
 const (

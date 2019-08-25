@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgio"
-	errors "golang.org/x/xerrors"
+	errors "github.com/jackc/pgtype/errors"
 )
 
 const pgTimestampFormat = "2006-01-02 15:04:05.999999999"

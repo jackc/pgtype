@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	"github.com/jackc/pgio"
-	errors "golang.org/x/xerrors"
+	errors "github.com/jackc/pgtype/errors"
 )
 
 type Int8 struct {

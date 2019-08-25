@@ -3,7 +3,7 @@ package uuid
 import (
 	"database/sql/driver"
 
-	errors "golang.org/x/xerrors"
+	errors "github.com/jackc/pgtype/errors"
 
 	"github.com/jackc/pgtype"
 	uuid "github.com/satori/go.uuid"

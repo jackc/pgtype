@@ -3,7 +3,7 @@ package pgtype
 import (
 	"database/sql/driver"
 
-	errors "golang.org/x/xerrors"
+	errors "github.com/jackc/pgtype/errors"
 )
 
 type ACLItemArray struct {

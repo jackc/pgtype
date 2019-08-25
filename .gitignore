@@ -1,0 +1,5 @@
+.envrc
+vendor/
+
+# iginore jetbrains's IDE folder
+.idea/

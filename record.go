@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"reflect"
 
-	errors "golang.org/x/xerrors"
+	errors "github.com/jackc/pgtype/errors"
 )
 
 // Record is the generic PostgreSQL record type such as is created with the

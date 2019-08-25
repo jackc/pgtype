@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 
-	errors "golang.org/x/xerrors"
+	errors "github.com/jackc/pgtype/errors"
 )
 
 type BoundType byte

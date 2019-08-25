@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 
 	"github.com/jackc/pgio"
-	errors "golang.org/x/xerrors"
+	errors "github.com/jackc/pgtype/errors"
 )
 
 type UUIDArray struct {

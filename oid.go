@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/jackc/pgio"
-	errors "golang.org/x/xerrors"
+	errors "github.com/jackc/pgtype/errors"
 )
 
 // OID (Object Identifier Type) is, according to

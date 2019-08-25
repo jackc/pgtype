@@ -8,7 +8,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	errors "golang.org/x/xerrors"
+	errors "github.com/jackc/pgtype/errors"
 
 	"github.com/jackc/pgio"
 )

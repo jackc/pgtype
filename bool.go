@@ -4,7 +4,7 @@ import (
 	"database/sql/driver"
 	"strconv"
 
-	errors "golang.org/x/xerrors"
+	errors "github.com/jackc/pgtype/errors"
 )
 
 type Bool struct {

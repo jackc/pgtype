@@ -6,7 +6,7 @@ import (
 	"net"
 
 	"github.com/jackc/pgio"
-	errors "golang.org/x/xerrors"
+	errors "github.com/jackc/pgtype/errors"
 )
 
 type CIDRArray struct {

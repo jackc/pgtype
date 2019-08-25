@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/jackc/pgio"
-	errors "golang.org/x/xerrors"
+	errors "github.com/jackc/pgtype/errors"
 )
 
 // PostgreSQL internal numeric storage uses 16-bit "digits" with base of 10,000
