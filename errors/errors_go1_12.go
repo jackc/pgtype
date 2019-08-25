@@ -3,7 +3,7 @@
 package errors
 
 import (
-	errors "github.com/jackc/pgtype/errors"
+	errors "golang.org/x/xerrors"
 )
 
 // New  wrap errors.New
