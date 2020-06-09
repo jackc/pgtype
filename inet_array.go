@@ -3,6 +3,7 @@ package pgtype
 import (
 	"database/sql/driver"
 	"encoding/binary"
+	"encoding/json"
 	"net"
 
 	"github.com/jackc/pgio"
@@ -230,16 +231,7 @@ func (src InetArray) EncodeText(ci *ConnInfo, buf []byte) ([]byte, error) {
 
 	buf = EncodeTextArrayDimensions(buf, src.Dimensions)
 
-	// dimElemCounts is the multiples of elements that each array lies on. For
-	// example, a single dimension array of length 4 would have a dimElemCounts of
-	// [4]. A multi-dimensional array of lengths [3,5,2] would have a
-	// dimElemCounts of [30,10,2]. This is used to simplify when to render a '{'
-	// or '}'.
-	dimElemCounts := make([]int, len(src.Dimensions))
-	dimElemCounts[len(src.Dimensions)-1] = int(src.Dimensions[len(src.Dimensions)-1].Length)
-	for i := len(src.Dimensions) - 2; i > -1; i-- {
-		dimElemCounts[i] = int(src.Dimensions[i].Length) * dimElemCounts[i+1]
-	}
+	dimElemCounts := src.dimElemCounts()
 
 	inElemBuf := make([]byte, 0, 32)
 	for i, elem := range src.Elements {
@@ -346,4 +338,69 @@ func (src InetArray) Value() (driver.Value, error) {
 	}
 
 	return string(buf), nil
+}
+
+// dimElemCounts is the multiples of elements that each array lies on. For
+// example, a single dimension array of length 4 would have a dimElemCounts of
+// [4]. A multi-dimensional array of lengths [3,5,2] would have a
+// dimElemCounts of [30,10,2]. This is used to simplify when to render a '{'
+// or '}'.
+func (src InetArray) dimElemCounts() []int {
+	dimElemCounts := make([]int, len(src.Dimensions))
+	dimElemCounts[len(src.Dimensions)-1] = int(src.Dimensions[len(src.Dimensions)-1].Length)
+	for i := len(src.Dimensions) - 2; i > -1; i-- {
+		dimElemCounts[i] = int(src.Dimensions[i].Length) * dimElemCounts[i+1]
+	}
+	return dimElemCounts
+}
+
+func (src InetArray) MarshalJSON() ([]byte, error) {
+	switch src.Status {
+	case Present:
+		if src.Status == Null {
+			return []byte("null"), nil
+		} else {
+			// each dimensions, marshal json and insert into result array
+			if len(src.Dimensions) == 1 {
+				// not nested
+				bytes, err := json.Marshal(src.Elements)
+				if err != nil {
+					return nil, err
+				}
+				return bytes, nil
+			}
+
+			dimElemCounts := src.dimElemCounts()
+			var bytes []byte
+			for i, elem := range src.Elements {
+				if i > 0 {
+					bytes = append(bytes, ',')
+				}
+				for _, dec := range dimElemCounts {
+					if i%dec == 0 {
+						bytes = append(bytes, '[')
+					}
+				}
+
+				eb, err := json.Marshal(elem)
+				if err != nil {
+					return nil, err
+				}
+				bytes = append(bytes, eb...)
+
+				for _, dec := range dimElemCounts {
+					if (i+1)%dec == 0 {
+						bytes = append(bytes, ']')
+					}
+				}
+			}
+			return bytes, nil
+		}
+	case Null:
+		return []byte("null"), nil
+	case Undefined:
+		return nil, errUndefined
+	}
+
+	return nil, errBadStatus
 }

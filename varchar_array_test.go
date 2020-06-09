@@ -150,3 +150,54 @@ func TestVarcharArrayAssignTo(t *testing.T) {
 		}
 	}
 }
+
+func TestVarcharArrayMarshalJSON(t *testing.T) {
+	var sSet pgtype.VarcharArray
+	err := sSet.Set([]string{"1", "2", "test"})
+	if err != nil {
+		t.Error(err)
+	}
+	// note: *.Set does not support multi-dimensional arrays
+	//var s4 pgtype.VarcharArray
+	//err = s4.Set([][]string{{"1"}, {"2"}, {"test"}})
+	//if err != nil {
+	//	t.Error(err)
+	//}
+
+	successfulTests := []struct {
+		source pgtype.VarcharArray
+		result string
+	}{
+		{source: pgtype.VarcharArray{Elements: []pgtype.Varchar{}, Status: pgtype.Null}, result: "null"},
+		{
+			source: pgtype.VarcharArray{
+				Elements: []pgtype.Varchar{{String: "", Status: pgtype.Present}},
+				Dimensions: []pgtype.ArrayDimension{{Length: 1, LowerBound: 1}},
+				Status:   pgtype.Present,
+			},
+			result: `[""]`,
+		},
+		{
+			source: pgtype.VarcharArray{
+				Elements: []pgtype.Varchar{
+					{String: "test", Status: pgtype.Present},
+					{String: "", Status: pgtype.Null},
+				},
+				Dimensions: []pgtype.ArrayDimension{{Length: 2, LowerBound: 1}},
+				Status:   pgtype.Present,
+			},
+			result: `["test",null]`,
+		},
+		{source: sSet, result: `["1","2","test"]`},
+	}
+	for i, tt := range successfulTests {
+		r, err := tt.source.MarshalJSON()
+		if err != nil {
+			t.Errorf("%d: %v", i, err)
+		}
+
+		if string(r) != tt.result {
+			t.Errorf("%d: expected %v to convert to %v, but it was %v", i, tt.source, tt.result, string(r))
+		}
+	}
+}

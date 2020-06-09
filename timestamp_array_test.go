@@ -157,3 +157,5 @@ func TestTimestampArrayAssignTo(t *testing.T) {
 	}
 
 }
+
+// todo add JSONMarshal test

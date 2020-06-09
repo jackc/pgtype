@@ -10,5 +10,6 @@ require (
 	github.com/lib/pq v1.3.0
 	github.com/shopspring/decimal v0.0.0-20200227202807-02e2044944cc
 	github.com/stretchr/testify v1.5.1
+	golang.org/x/tools v0.0.0-20200609164405-eb789aa7ce50 // indirect
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
 )

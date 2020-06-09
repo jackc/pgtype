@@ -150,3 +150,47 @@ func TestTextArrayAssignTo(t *testing.T) {
 		}
 	}
 }
+
+func TestTextArrayMarshalJSON(t *testing.T) {
+	var sSet pgtype.TextArray
+	err := sSet.Set([]string{"1", "2", "test"})
+	if err != nil {
+		t.Error(err)
+	}
+	successfulTests := []struct {
+		source pgtype.TextArray
+		result string
+	}{
+		{source: pgtype.TextArray{Elements: []pgtype.Text{}, Status: pgtype.Null}, result: "null"},
+		{
+			source: pgtype.TextArray{
+				Elements: []pgtype.Text{{String: "", Status: pgtype.Present}},
+				Dimensions: []pgtype.ArrayDimension{{Length: 1, LowerBound: 1}},
+				Status:   pgtype.Present,
+			},
+			result: `[""]`,
+		},
+		{
+			source: pgtype.TextArray{
+				Elements: []pgtype.Text{
+					{String: "test", Status: pgtype.Present},
+					{String: "", Status: pgtype.Null},
+				},
+				Dimensions: []pgtype.ArrayDimension{{Length: 2, LowerBound: 1}},
+				Status:   pgtype.Present,
+			},
+			result: `["test",null]`,
+		},
+		{source: sSet, result: `["1","2","test"]`},
+	}
+	for i, tt := range successfulTests {
+		r, err := tt.source.MarshalJSON()
+		if err != nil {
+			t.Errorf("%d: %v", i, err)
+		}
+
+		if string(r) != tt.result {
+			t.Errorf("%d: expected %v to convert to %v, but it was %v", i, tt.source, tt.result, string(r))
+		}
+	}
+}
