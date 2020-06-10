@@ -164,9 +164,9 @@ func TestTextArrayMarshalJSON(t *testing.T) {
 		{source: pgtype.TextArray{Elements: []pgtype.Text{}, Status: pgtype.Null}, result: "null"},
 		{
 			source: pgtype.TextArray{
-				Elements: []pgtype.Text{{String: "", Status: pgtype.Present}},
+				Elements:   []pgtype.Text{{String: "", Status: pgtype.Present}},
 				Dimensions: []pgtype.ArrayDimension{{Length: 1, LowerBound: 1}},
-				Status:   pgtype.Present,
+				Status:     pgtype.Present,
 			},
 			result: `[""]`,
 		},
@@ -177,7 +177,7 @@ func TestTextArrayMarshalJSON(t *testing.T) {
 					{String: "", Status: pgtype.Null},
 				},
 				Dimensions: []pgtype.ArrayDimension{{Length: 2, LowerBound: 1}},
-				Status:   pgtype.Present,
+				Status:     pgtype.Present,
 			},
 			result: `["test",null]`,
 		},
