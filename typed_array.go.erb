@@ -331,6 +331,7 @@ func (src <%= pgtype_array_type %>) dimElemCounts() []int {
 	return dimElemCounts
 }
 
+<% if json_marshal == "true" %>
 func (src <%= pgtype_array_type %>) MarshalJSON() ([]byte, error) {
 	switch src.Status {
 	case Present:
@@ -381,3 +382,4 @@ func (src <%= pgtype_array_type %>) MarshalJSON() ([]byte, error) {
 
 	return nil, errBadStatus
 }
+<% end %>

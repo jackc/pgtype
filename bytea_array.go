@@ -3,7 +3,6 @@ package pgtype
 import (
 	"database/sql/driver"
 	"encoding/binary"
-	"encoding/json"
 
 	"github.com/jackc/pgio"
 	errors "golang.org/x/xerrors"
@@ -323,55 +322,4 @@ func (src ByteaArray) dimElemCounts() []int {
 		dimElemCounts[i] = int(src.Dimensions[i].Length) * dimElemCounts[i+1]
 	}
 	return dimElemCounts
-}
-
-func (src ByteaArray) MarshalJSON() ([]byte, error) {
-	switch src.Status {
-	case Present:
-		if src.Status == Null {
-			return []byte("null"), nil
-		} else {
-			// each dimensions, marshal json and insert into result array
-			if len(src.Dimensions) == 1 {
-				// not nested
-				bytes, err := json.Marshal(src.Elements)
-				if err != nil {
-					return nil, err
-				}
-				return bytes, nil
-			}
-
-			dimElemCounts := src.dimElemCounts()
-			var bytes []byte
-			for i, elem := range src.Elements {
-				if i > 0 {
-					bytes = append(bytes, ',')
-				}
-				for _, dec := range dimElemCounts {
-					if i%dec == 0 {
-						bytes = append(bytes, '[')
-					}
-				}
-
-				eb, err := json.Marshal(elem)
-				if err != nil {
-					return nil, err
-				}
-				bytes = append(bytes, eb...)
-
-				for _, dec := range dimElemCounts {
-					if (i+1)%dec == 0 {
-						bytes = append(bytes, ']')
-					}
-				}
-			}
-			return bytes, nil
-		}
-	case Null:
-		return []byte("null"), nil
-	case Undefined:
-		return nil, errUndefined
-	}
-
-	return nil, errBadStatus
 }
