@@ -350,3 +350,18 @@ func QuoteArrayElementIfNeeded(src string) string {
 	}
 	return src
 }
+
+// multidimensional array helper
+// dimElemCounts is the multiples of elements that each array lies on. For
+// example, a single dimension array of length 4 would have a dimElemCounts of
+// [4]. A multi-dimensional array of lengths [3,5,2] would have a
+// dimElemCounts of [30,10,2]. This is used to simplify when to render a '{'
+// or '}'.
+func getDimElemCounts(dims []ArrayDimension) []int {
+	dimElemCounts := make([]int, len(dims))
+	dimElemCounts[len(dims)-1] = int(dims[len(dims)-1].Length)
+	for i := len(dims) - 2; i > -1; i-- {
+		dimElemCounts[i] = int(dims[i].Length) * dimElemCounts[i+1]
+	}
+	return dimElemCounts
+}

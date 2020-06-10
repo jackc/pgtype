@@ -203,7 +203,7 @@ func (src TimestamptzArray) EncodeText(ci *ConnInfo, buf []byte) ([]byte, error)
 
 	buf = EncodeTextArrayDimensions(buf, src.Dimensions)
 
-	dimElemCounts := src.dimElemCounts()
+	dimElemCounts := getDimElemCounts(src.Dimensions)
 
 	inElemBuf := make([]byte, 0, 32)
 	for i, elem := range src.Elements {
@@ -312,20 +312,6 @@ func (src TimestamptzArray) Value() (driver.Value, error) {
 	return string(buf), nil
 }
 
-// dimElemCounts is the multiples of elements that each array lies on. For
-// example, a single dimension array of length 4 would have a dimElemCounts of
-// [4]. A multi-dimensional array of lengths [3,5,2] would have a
-// dimElemCounts of [30,10,2]. This is used to simplify when to render a '{'
-// or '}'.
-func (src TimestamptzArray) dimElemCounts() []int {
-	dimElemCounts := make([]int, len(src.Dimensions))
-	dimElemCounts[len(src.Dimensions)-1] = int(src.Dimensions[len(src.Dimensions)-1].Length)
-	for i := len(src.Dimensions) - 2; i > -1; i-- {
-		dimElemCounts[i] = int(src.Dimensions[i].Length) * dimElemCounts[i+1]
-	}
-	return dimElemCounts
-}
-
 func (src TimestamptzArray) MarshalJSON() ([]byte, error) {
 	switch src.Status {
 	case Present:
@@ -342,7 +328,7 @@ func (src TimestamptzArray) MarshalJSON() ([]byte, error) {
 				return bytes, nil
 			}
 
-			dimElemCounts := src.dimElemCounts()
+			dimElemCounts := getDimElemCounts(src.Dimensions)
 			var bytes []byte
 			for i, elem := range src.Elements {
 				if i > 0 {
