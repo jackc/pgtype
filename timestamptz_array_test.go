@@ -186,7 +186,7 @@ func TestTimestamptzArrayMarshalJSON(t *testing.T) {
 		},
 		{
 			source: pgtype.TimestamptzArray{
-				Elements:   []pgtype.Timestamptz{
+				Elements: []pgtype.Timestamptz{
 					{Time: t1, Status: pgtype.Present},
 					{Status: pgtype.Null},
 					{Time: t2, Status: pgtype.Present},

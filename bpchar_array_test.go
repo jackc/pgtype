@@ -54,7 +54,6 @@ func TestBPCharArrayTranscode(t *testing.T) {
 	})
 }
 
-
 func TestBPCharArrayMarshalJSON(t *testing.T) {
 	successfulTests := []struct {
 		source pgtype.BPCharArray
@@ -69,7 +68,7 @@ func TestBPCharArrayMarshalJSON(t *testing.T) {
 					{String: "...", Status: pgtype.Present},
 				},
 				Dimensions: []pgtype.ArrayDimension{{LowerBound: 1, Length: 2}},
-				Status: pgtype.Present,
+				Status:     pgtype.Present,
 			},
 			result: `[" asdf ... ","..."]`,
 		},
@@ -81,7 +80,7 @@ func TestBPCharArrayMarshalJSON(t *testing.T) {
 					{Status: pgtype.Null},
 				},
 				Dimensions: []pgtype.ArrayDimension{{LowerBound: 1, Length: 3}},
-				Status: pgtype.Present,
+				Status:     pgtype.Present,
 			},
 			result: `["test123",null,null]`,
 		},
@@ -91,7 +90,7 @@ func TestBPCharArrayMarshalJSON(t *testing.T) {
 					{String: "", Status: pgtype.Present},
 				},
 				Dimensions: []pgtype.ArrayDimension{{LowerBound: 1, Length: 1}},
-				Status: pgtype.Present,
+				Status:     pgtype.Present,
 			},
 			result: `[""]`,
 		},

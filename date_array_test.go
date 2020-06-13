@@ -172,7 +172,7 @@ func TestDateArrayMarshalJSON(t *testing.T) {
 		},
 		{
 			source: pgtype.DateArray{
-				Elements:   []pgtype.Date{
+				Elements: []pgtype.Date{
 					{Time: t1, Status: pgtype.Present},
 					{Status: pgtype.Null},
 					{Time: t2, Status: pgtype.Present},

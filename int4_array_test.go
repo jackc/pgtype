@@ -225,7 +225,6 @@ func TestInt4ArrayAssignTo(t *testing.T) {
 
 }
 
-
 func TestInt4ArrayMarshalJSON(t *testing.T) {
 	successfulTests := []struct {
 		source pgtype.Int4Array
@@ -243,7 +242,7 @@ func TestInt4ArrayMarshalJSON(t *testing.T) {
 		},
 		{
 			source: pgtype.Int4Array{
-				Elements:   []pgtype.Int4{
+				Elements: []pgtype.Int4{
 					{Int: 1, Status: pgtype.Present},
 					{Status: pgtype.Null},
 					{Int: -2, Status: pgtype.Present},

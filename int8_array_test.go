@@ -234,7 +234,7 @@ func TestInt8ArrayMarshalJSON(t *testing.T) {
 		},
 		{
 			source: pgtype.Int8Array{
-				Elements:   []pgtype.Int8{
+				Elements: []pgtype.Int8{
 					{Int: 1, Status: pgtype.Present},
 					{Status: pgtype.Null},
 					{Int: -2, Status: pgtype.Present},
