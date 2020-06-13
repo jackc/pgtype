@@ -329,7 +329,6 @@ func (src <%= pgtype_array_type %>) MarshalJSON() ([]byte, error) {
                 if src.Elements == nil {
                     return []byte("[]"), nil
                 }
-                // todo: determine if Elements should be sliced using Dimensions[0]
 				bytes, err := json.Marshal(src.Elements)
 				if err != nil {
 					return nil, err
