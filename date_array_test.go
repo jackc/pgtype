@@ -1,6 +1,7 @@
 package pgtype_test
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -140,4 +141,56 @@ func TestDateArrayAssignTo(t *testing.T) {
 		}
 	}
 
+}
+
+const dateFormat = "2006-01-02"
+
+func TestDateArrayMarshalJSON(t *testing.T) {
+	t1s := "2020-06-13"
+	t1, err := time.Parse(dateFormat, t1s)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t2s := "2020-06-13"
+	t2, err := time.Parse(dateFormat, t2s)
+	if err != nil {
+		t.Fatal(err)
+	}
+	successfulTests := []struct {
+		source pgtype.DateArray
+		result string
+	}{
+		{source: pgtype.DateArray{Elements: []pgtype.Date{}, Status: pgtype.Null}, result: "null"},
+		{source: pgtype.DateArray{Dimensions: []pgtype.ArrayDimension{{LowerBound: 1, Length: 0}}, Status: pgtype.Present}, result: "[]"},
+		{
+			source: pgtype.DateArray{
+				Elements:   []pgtype.Date{{Time: t1, Status: pgtype.Present}},
+				Dimensions: []pgtype.ArrayDimension{{Length: 1, LowerBound: 1}},
+				Status:     pgtype.Present,
+			},
+			result: fmt.Sprintf(`["%s"]`, t1s),
+		},
+		{
+			source: pgtype.DateArray{
+				Elements:   []pgtype.Date{
+					{Time: t1, Status: pgtype.Present},
+					{Status: pgtype.Null},
+					{Time: t2, Status: pgtype.Present},
+				},
+				Dimensions: []pgtype.ArrayDimension{{Length: 3, LowerBound: 1}},
+				Status:     pgtype.Present,
+			},
+			result: fmt.Sprintf(`["%s",null,"%s"]`, t1s, t2s),
+		},
+	}
+	for i, tt := range successfulTests {
+		r, err := tt.source.MarshalJSON()
+		if err != nil {
+			t.Errorf("%d: %v", i, err)
+		}
+
+		if string(r) != tt.result {
+			t.Errorf("%d: expected %v to convert to %v, but it was %v", i, tt.source, tt.result, string(r))
+		}
+	}
 }

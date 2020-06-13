@@ -151,3 +151,56 @@ func TestBoolArrayAssignTo(t *testing.T) {
 	}
 
 }
+
+func TestBoolArrayMarshalJSON(t *testing.T) {
+	successfulTests := []struct {
+		source pgtype.BoolArray
+		result string
+	}{
+		{source: pgtype.BoolArray{Status: pgtype.Null}, result: "null"},
+		{source: pgtype.BoolArray{Dimensions: []pgtype.ArrayDimension{{LowerBound: 1, Length: 0}}, Status: pgtype.Present}, result: "[]"},
+		{
+			source: pgtype.BoolArray{
+				Elements: []pgtype.Bool{
+					{Bool: true, Status: pgtype.Present},
+					{Bool: false, Status: pgtype.Present},
+				},
+				Dimensions: []pgtype.ArrayDimension{{LowerBound: 1, Length: 2}},
+				Status: pgtype.Present,
+			},
+			result: "[true,false]",
+		},
+		{
+			source: pgtype.BoolArray{
+				Elements: []pgtype.Bool{
+					{Bool: true, Status: pgtype.Present},
+					{Status: pgtype.Null},
+					{Status: pgtype.Null},
+				},
+				Dimensions: []pgtype.ArrayDimension{{LowerBound: 1, Length: 3}},
+				Status: pgtype.Present,
+			},
+			result: "[true,null,null]",
+		},
+		{
+			source: pgtype.BoolArray{
+				Elements: []pgtype.Bool{
+					{Bool: false, Status: pgtype.Present},
+				},
+				Dimensions: []pgtype.ArrayDimension{{LowerBound: 1, Length: 1}},
+				Status: pgtype.Present,
+			},
+			result: "[false]",
+		},
+	}
+	for i, tt := range successfulTests {
+		r, err := tt.source.MarshalJSON()
+		if err != nil {
+			t.Errorf("%d: %v", i, err)
+		}
+
+		if string(r) != tt.result {
+			t.Errorf("%d: expected %v to convert to %v, but it was %v", i, tt.source, tt.result, string(r))
+		}
+	}
+}

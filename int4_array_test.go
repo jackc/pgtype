@@ -224,3 +224,45 @@ func TestInt4ArrayAssignTo(t *testing.T) {
 	}
 
 }
+
+
+func TestInt4ArrayMarshalJSON(t *testing.T) {
+	successfulTests := []struct {
+		source pgtype.Int4Array
+		result string
+	}{
+		{source: pgtype.Int4Array{Status: pgtype.Null}, result: "null"},
+		{source: pgtype.Int4Array{Dimensions: []pgtype.ArrayDimension{{LowerBound: 1, Length: 0}}, Status: pgtype.Present}, result: "[]"},
+		{
+			source: pgtype.Int4Array{
+				Elements:   []pgtype.Int4{{Int: 0, Status: pgtype.Present}},
+				Dimensions: []pgtype.ArrayDimension{{Length: 1, LowerBound: 1}},
+				Status:     pgtype.Present,
+			},
+			result: `[0]`,
+		},
+		{
+			source: pgtype.Int4Array{
+				Elements:   []pgtype.Int4{
+					{Int: 1, Status: pgtype.Present},
+					{Status: pgtype.Null},
+					{Int: -2, Status: pgtype.Present},
+					{Int: 0, Status: pgtype.Present},
+				},
+				Dimensions: []pgtype.ArrayDimension{{Length: 4, LowerBound: 1}},
+				Status:     pgtype.Present,
+			},
+			result: `[1,null,-2,0]`,
+		},
+	}
+	for i, tt := range successfulTests {
+		r, err := tt.source.MarshalJSON()
+		if err != nil {
+			t.Errorf("%d: %v", i, err)
+		}
+
+		if string(r) != tt.result {
+			t.Errorf("%d: expected %v to convert to %v, but it was %v", i, tt.source, tt.result, string(r))
+		}
+	}
+}

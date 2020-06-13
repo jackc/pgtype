@@ -1,6 +1,7 @@
 package pgtype_test
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -156,4 +157,54 @@ func TestTimestamptzArrayAssignTo(t *testing.T) {
 		}
 	}
 
+}
+
+func TestTimestamptzArrayMarshalJSON(t *testing.T) {
+	t1s := "2020-06-13T13:58:42.910574-07:00"
+	t1, err := time.Parse(time.RFC3339Nano, t1s)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t2s := "2020-06-13T13:58:42.910574-07:00"
+	t2, err := time.Parse(time.RFC3339Nano, t2s)
+	if err != nil {
+		t.Fatal(err)
+	}
+	successfulTests := []struct {
+		source pgtype.TimestamptzArray
+		result string
+	}{
+		{source: pgtype.TimestamptzArray{Elements: []pgtype.Timestamptz{}, Status: pgtype.Null}, result: "null"},
+		{source: pgtype.TimestamptzArray{Dimensions: []pgtype.ArrayDimension{{LowerBound: 1, Length: 0}}, Status: pgtype.Present}, result: "[]"},
+		{
+			source: pgtype.TimestamptzArray{
+				Elements:   []pgtype.Timestamptz{{Time: t1, Status: pgtype.Present}},
+				Dimensions: []pgtype.ArrayDimension{{Length: 1, LowerBound: 1}},
+				Status:     pgtype.Present,
+			},
+			result: fmt.Sprintf(`["%s"]`, t1s),
+		},
+		{
+			source: pgtype.TimestamptzArray{
+				Elements:   []pgtype.Timestamptz{
+					{Time: t1, Status: pgtype.Present},
+					{Status: pgtype.Null},
+					{Time: t2, Status: pgtype.Present},
+				},
+				Dimensions: []pgtype.ArrayDimension{{Length: 3, LowerBound: 1}},
+				Status:     pgtype.Present,
+			},
+			result: fmt.Sprintf(`["%s",null,"%s"]`, t1s, t2s),
+		},
+	}
+	for i, tt := range successfulTests {
+		r, err := tt.source.MarshalJSON()
+		if err != nil {
+			t.Errorf("%d: %v", i, err)
+		}
+
+		if string(r) != tt.result {
+			t.Errorf("%d: expected %v to convert to %v, but it was %v", i, tt.source, tt.result, string(r))
+		}
+	}
 }

@@ -157,18 +157,12 @@ func TestVarcharArrayMarshalJSON(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	// note: *.Set does not support multi-dimensional arrays
-	//var s4 pgtype.VarcharArray
-	//err = s4.Set([][]string{{"1"}, {"2"}, {"test"}})
-	//if err != nil {
-	//	t.Error(err)
-	//}
-
 	successfulTests := []struct {
 		source pgtype.VarcharArray
 		result string
 	}{
 		{source: pgtype.VarcharArray{Elements: []pgtype.Varchar{}, Status: pgtype.Null}, result: "null"},
+		{source: pgtype.VarcharArray{Dimensions: []pgtype.ArrayDimension{{LowerBound: 1, Length: 0}}, Status: pgtype.Present}, result: "[]"},
 		{
 			source: pgtype.VarcharArray{
 				Elements:   []pgtype.Varchar{{String: "", Status: pgtype.Present}},

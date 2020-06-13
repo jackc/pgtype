@@ -515,7 +515,10 @@ func (src Int4Array) MarshalJSON() ([]byte, error) {
 		} else {
 			// each dimensions, marshal json and insert into result array
 			if len(src.Dimensions) == 1 {
-				// not nested
+				// avoid default json.Marshal behavior for nil Element slices, this behavior is defined by src.Status
+				if src.Elements == nil {
+					return []byte("[]"), nil
+				}
 				bytes, err := json.Marshal(src.Elements)
 				if err != nil {
 					return nil, err
