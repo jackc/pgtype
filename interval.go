@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgio"
-	"github.com/senseyeio/duration"
+	"github.com/rickb777/date/period"
 	errors "golang.org/x/xerrors"
 )
 
@@ -88,14 +88,15 @@ func (src *Interval) AssignTo(dst interface{}) error {
 }
 
 func (dst *Interval) decodeISO8601(input string) error {
-	d, err := duration.ParseISO8601("P1D")
+	d, err := period.Parse(input)
 	if err != nil {
 		return err
 	}
 
-	dst.Days = int32(d.D)
-	dst.Months = int32(d.M)
-	dst.Microseconds = int64((d.TH * microsecondsPerHour) + (d.TM * microsecondsPerMinute) + (d.TS * microsecondsPerSecond))
+	dst.Days = int32(d.Days())
+	dst.Months = int32(d.Months())
+
+	dst.Microseconds = int64((d.Hours() * microsecondsPerHour) + (d.Minutes() * microsecondsPerMinute) + (d.Seconds() * microsecondsPerSecond))
 
 	dst.Status = Present
 
@@ -203,7 +204,7 @@ func (dst *Interval) DecodeText(ci *ConnInfo, src []byte) error {
 	firstChar := string(inputText[0]) // we can ignore UTF-8 runes
 
 	postgresMatch := regexp.MustCompile(`^[\d-]`)
-	sqlMatch := regexp.MustCompile("^((?![a-z,A-Z]).)*$")
+	sqlMatch := regexp.MustCompile("[a-zA-Z]")
 
 	switch {
 	// ISO8601
@@ -216,7 +217,7 @@ func (dst *Interval) DecodeText(ci *ConnInfo, src []byte) error {
 	case postgresMatch.MatchString(inputText):
 		return dst.decodePostgres(inputText)
 	// SQL Standard
-	case sqlMatch.MatchString(inputText):
+	case !sqlMatch.MatchString(inputText):
 		return dst.decodeSQL(inputText)
 	default:
 		return errors.Errorf("bad interval format")

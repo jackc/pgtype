@@ -8,7 +8,7 @@ require (
 	github.com/jackc/pgio v1.0.0
 	github.com/jackc/pgx/v4 v4.6.1-0.20200606145419-4e5062306904
 	github.com/lib/pq v1.3.0
-	github.com/senseyeio/duration v0.0.0-20180430131211-7c2a214ada46
+	github.com/rickb777/date v1.13.0
 	github.com/shopspring/decimal v0.0.0-20200227202807-02e2044944cc
 	github.com/stretchr/testify v1.5.1
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
