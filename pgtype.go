@@ -932,3 +932,7 @@ func init() {
 		"xid":          &XID{},
 	}
 }
+
+func IgnoreUndefined () {
+    errUndefined = nil	
+}
