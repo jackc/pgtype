@@ -210,6 +210,10 @@ type TextEncoder interface {
 var errUndefined = errors.New("cannot encode status undefined")
 var errBadStatus = errors.New("invalid status")
 
+func IgnoreUndefined () {
+	errUndefined = nil
+}
+
 type nullAssignmentError struct {
 	dst interface{}
 }
@@ -931,8 +935,4 @@ func init() {
 		"varchar":      &Varchar{},
 		"xid":          &XID{},
 	}
-}
-
-func IgnoreUndefined () {
-    errUndefined = nil	
 }
