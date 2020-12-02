@@ -114,3 +114,60 @@ func TestInetAssignTo(t *testing.T) {
 		}
 	}
 }
+
+func TestInetMarshalJSON(t *testing.T) {
+	successfulTests := []struct {
+		json   string
+		source pgtype.Inet
+	}{
+		{source: pgtype.Inet{IPNet: mustParseCIDR(t, "127.0.0.1/32"), Status: pgtype.Present}, json: `"127.0.0.1/32"`},
+		{source: pgtype.Inet{IPNet: mustParseCIDR(t, "2607:f8b0:4009:80b::200e/128"), Status: pgtype.Present}, json: `"2607:f8b0:4009:80b::200e/128"`},
+		{source: pgtype.Inet{Status: pgtype.Null}, json: `""`},
+		{source: pgtype.Inet{}, json: `""`},
+	}
+
+	for i, tt := range successfulTests {
+		got, err := tt.source.MarshalJSON()
+		if err != nil {
+			t.Errorf("%d: %v", i, err)
+		}
+		if !reflect.DeepEqual(got, []byte(tt.json)) {
+			t.Errorf("%d: expected JSON `%s`, but it was %s", i, tt.json, string(got))
+		}
+	}
+}
+
+func TestInetUnmarshalJSON(t *testing.T) {
+	successfulTests := []struct {
+		json     string
+		expected pgtype.Inet
+	}{
+		{expected: pgtype.Inet{IPNet: mustParseCIDR(t, "127.0.0.1/32"), Status: pgtype.Present}, json: `"127.0.0.1/32"`},
+		{expected: pgtype.Inet{IPNet: mustParseCIDR(t, "127.0.0.1/32"), Status: pgtype.Present}, json: `"127.0.0.1"`},
+		{expected: pgtype.Inet{IPNet: mustParseCIDR(t, "2607:f8b0:4009:80b::200e/128"), Status: pgtype.Present}, json: `"2607:f8b0:4009:80b::200e/128"`},
+		{expected: pgtype.Inet{IPNet: mustParseCIDR(t, "2607:f8b0:4009:80b::200e/128"), Status: pgtype.Present}, json: `"2607:f8b0:4009:80b::200e"`},
+		{expected: pgtype.Inet{Status: pgtype.Null}, json: `""`}, // empty is OK, equivalent to our null struct
+	}
+	badJSON := []string{
+		`"127.0.0.1/"`,         // no network
+		`"444.555.666.777/32"`, // bad addr
+		`"nonsense"`,           // bad everything
+	}
+
+	for i, tt := range successfulTests {
+		got := pgtype.Inet{}
+		if err := got.UnmarshalJSON([]byte(tt.json)); err != nil {
+			t.Errorf("%d: %v", i, err)
+		}
+		if !reflect.DeepEqual(got, tt.expected) {
+			t.Errorf("%d: expected %v from JSON `%s`, but it was %v", i, tt.expected, tt.json, got)
+		}
+	}
+
+	for i, example := range badJSON {
+		got := pgtype.Inet{}
+		if err := got.UnmarshalJSON([]byte(example)); err == nil {
+			t.Errorf("%d: Expected error for %s, but got none", i, example)
+		}
+	}
+}
