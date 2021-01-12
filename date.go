@@ -10,6 +10,8 @@ import (
 	errors "golang.org/x/xerrors"
 )
 
+const pgDateFormat = "2006-01-02"
+
 type Date struct {
 	Time             time.Time
 	Status           Status
@@ -111,7 +113,7 @@ func (dst *Date) DecodeText(ci *ConnInfo, src []byte) error {
 	case "-infinity":
 		*dst = Date{Status: Present, InfinityModifier: -Infinity}
 	default:
-		t, err := time.ParseInLocation("2006-01-02", sbuf, time.UTC)
+		t, err := decodeTextTimestamp(pgDateFormat, sbuf, true)
 		if err != nil {
 			return err
 		}
@@ -159,7 +161,7 @@ func (src Date) EncodeText(ci *ConnInfo, buf []byte) ([]byte, error) {
 
 	switch src.InfinityModifier {
 	case None:
-		s = src.Time.Format("2006-01-02")
+		s = encodeTextTimestamp(pgDateFormat, src.Time)
 	case Infinity:
 		s = "infinity"
 	case NegativeInfinity:
@@ -223,7 +225,7 @@ func (src Date) Value() (driver.Value, error) {
 		if src.InfinityModifier != None {
 			return src.InfinityModifier.String(), nil
 		}
-		return src.Time, nil
+		return EncodeValueText(src)
 	case Null:
 		return nil, nil
 	default:
@@ -247,7 +249,7 @@ func (src Date) MarshalJSON() ([]byte, error) {
 
 	switch src.InfinityModifier {
 	case None:
-		s = src.Time.Format("2006-01-02")
+		s = encodeTextTimestamp(pgDateFormat, src.Time)
 	case Infinity:
 		s = "infinity"
 	case NegativeInfinity:
@@ -275,7 +277,7 @@ func (dst *Date) UnmarshalJSON(b []byte) error {
 	case "-infinity":
 		*dst = Date{Status: Present, InfinityModifier: -Infinity}
 	default:
-		t, err := time.ParseInLocation("2006-01-02", *s, time.UTC)
+		t, err := decodeTextTimestamp(pgDateFormat, *s, true)
 		if err != nil {
 			return err
 		}

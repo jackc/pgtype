@@ -111,6 +111,8 @@ func (dst *Timestamptz) DecodeText(ci *ConnInfo, src []byte) error {
 		*dst = Timestamptz{Status: Present, InfinityModifier: -Infinity}
 	default:
 		var format string
+		orig := sbuf
+		sbuf, _ = trimTimestampBC(sbuf)
 		if len(sbuf) >= 9 && (sbuf[len(sbuf)-9] == '-' || sbuf[len(sbuf)-9] == '+') {
 			format = pgTimestamptzSecondFormat
 		} else if len(sbuf) >= 6 && (sbuf[len(sbuf)-6] == '-' || sbuf[len(sbuf)-6] == '+') {
@@ -118,8 +120,7 @@ func (dst *Timestamptz) DecodeText(ci *ConnInfo, src []byte) error {
 		} else {
 			format = pgTimestamptzHourFormat
 		}
-
-		tim, err := time.Parse(format, sbuf)
+		tim, err := decodeTextTimestamp(format, orig, false)
 		if err != nil {
 			return err
 		}
@@ -168,7 +169,7 @@ func (src Timestamptz) EncodeText(ci *ConnInfo, buf []byte) ([]byte, error) {
 
 	switch src.InfinityModifier {
 	case None:
-		s = src.Time.UTC().Truncate(time.Microsecond).Format(pgTimestamptzSecondFormat)
+		s = encodeTextTimestamp(pgTimestamptzSecondFormat, src.Time.UTC())
 	case Infinity:
 		s = "infinity"
 	case NegativeInfinity:
@@ -229,7 +230,7 @@ func (src Timestamptz) Value() (driver.Value, error) {
 		if src.InfinityModifier != None {
 			return src.InfinityModifier.String(), nil
 		}
-		return src.Time, nil
+		return EncodeValueText(src)
 	case Null:
 		return nil, nil
 	default:
@@ -253,7 +254,7 @@ func (src Timestamptz) MarshalJSON() ([]byte, error) {
 
 	switch src.InfinityModifier {
 	case None:
-		s = src.Time.Format(time.RFC3339Nano)
+		s = encodeTextTimestamp(time.RFC3339Nano, src.Time)
 	case Infinity:
 		s = "infinity"
 	case NegativeInfinity:
@@ -282,7 +283,7 @@ func (dst *Timestamptz) UnmarshalJSON(b []byte) error {
 		*dst = Timestamptz{Status: Present, InfinityModifier: -Infinity}
 	default:
 		// PostgreSQL uses ISO 8601 for to_json function and casting from a string to timestamptz
-		tim, err := time.Parse(time.RFC3339Nano, *s)
+		tim, err := decodeTextTimestamp(time.RFC3339Nano, *s, false)
 		if err != nil {
 			return err
 		}
