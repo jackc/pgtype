@@ -230,7 +230,7 @@ func (src Timestamptz) Value() (driver.Value, error) {
 		if src.InfinityModifier != None {
 			return src.InfinityModifier.String(), nil
 		}
-		return EncodeValueText(src)
+		return src.Time, nil
 	case Null:
 		return nil, nil
 	default:
