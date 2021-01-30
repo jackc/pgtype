@@ -1,6 +1,7 @@
 package pgtype_test
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -11,29 +12,35 @@ import (
 )
 
 func TestTimestamptzTranscode(t *testing.T) {
-	testutil.TestSuccessfulTranscodeEqFunc(t, "timestamptz", []interface{}{
-		&pgtype.Timestamptz{Time: time.Date(1800, 1, 1, 0, 0, 0, 0, time.Local), Status: pgtype.Present},
-		&pgtype.Timestamptz{Time: time.Date(1900, 1, 1, 0, 0, 0, 0, time.Local), Status: pgtype.Present},
-		&pgtype.Timestamptz{Time: time.Date(1905, 1, 1, 0, 0, 0, 0, time.Local), Status: pgtype.Present},
-		&pgtype.Timestamptz{Time: time.Date(1940, 1, 1, 0, 0, 0, 0, time.Local), Status: pgtype.Present},
-		&pgtype.Timestamptz{Time: time.Date(1960, 1, 1, 0, 0, 0, 0, time.Local), Status: pgtype.Present},
-		&pgtype.Timestamptz{Time: time.Date(1970, 1, 1, 0, 0, 0, 0, time.Local), Status: pgtype.Present},
-		&pgtype.Timestamptz{Time: time.Date(1999, 12, 31, 0, 0, 0, 0, time.Local), Status: pgtype.Present},
-		&pgtype.Timestamptz{Time: time.Date(2000, 1, 1, 0, 0, 0, 0, time.Local), Status: pgtype.Present},
-		&pgtype.Timestamptz{Time: time.Date(2000, 1, 2, 0, 0, 0, 0, time.Local), Status: pgtype.Present},
-		&pgtype.Timestamptz{Time: time.Date(2200, 1, 1, 0, 0, 0, 0, time.Local), Status: pgtype.Present},
-		&pgtype.Timestamptz{Time: time.Time{}, Status: pgtype.Present},
-		&pgtype.Timestamptz{Time: time.Date(0, 1, 1, 0, 0, 0, 0, time.Local), Status: pgtype.Present},
-		&pgtype.Timestamptz{Time: time.Date(-100, 1, 1, 0, 0, 0, 0, time.Local), Status: pgtype.Present},
-		&pgtype.Timestamptz{Status: pgtype.Null},
-		&pgtype.Timestamptz{Status: pgtype.Present, InfinityModifier: pgtype.Infinity},
-		&pgtype.Timestamptz{Status: pgtype.Present, InfinityModifier: -pgtype.Infinity},
-	}, func(a, b interface{}) bool {
-		at := a.(pgtype.Timestamptz)
-		bt := b.(pgtype.Timestamptz)
 
-		return at.Time.Equal(bt.Time) && at.Status == bt.Status && at.InfinityModifier == bt.InfinityModifier
-	})
+	for _, timezone := range []string{"UTC", "Europe/Berlin", "America/New_York"} {
+		t.Run(fmt.Sprintf("timezone %s", timezone), func(t *testing.T) {
+			defer testutil.SetDatabaseTimezone(t, timezone)()
+			testutil.TestSuccessfulTranscodeEqFunc(t, "timestamptz", []interface{}{
+				&pgtype.Timestamptz{Time: time.Date(1800, 1, 1, 0, 0, 0, 0, time.Local), Status: pgtype.Present},
+				&pgtype.Timestamptz{Time: time.Date(1900, 1, 1, 0, 0, 0, 0, time.Local), Status: pgtype.Present},
+				&pgtype.Timestamptz{Time: time.Date(1905, 1, 1, 0, 0, 0, 0, time.Local), Status: pgtype.Present},
+				&pgtype.Timestamptz{Time: time.Date(1940, 1, 1, 0, 0, 0, 0, time.Local), Status: pgtype.Present},
+				&pgtype.Timestamptz{Time: time.Date(1960, 1, 1, 0, 0, 0, 0, time.Local), Status: pgtype.Present},
+				&pgtype.Timestamptz{Time: time.Date(1970, 1, 1, 0, 0, 0, 0, time.Local), Status: pgtype.Present},
+				&pgtype.Timestamptz{Time: time.Date(1999, 12, 31, 0, 0, 0, 0, time.Local), Status: pgtype.Present},
+				&pgtype.Timestamptz{Time: time.Date(2000, 1, 1, 0, 0, 0, 0, time.Local), Status: pgtype.Present},
+				&pgtype.Timestamptz{Time: time.Date(2000, 1, 2, 0, 0, 0, 0, time.Local), Status: pgtype.Present},
+				&pgtype.Timestamptz{Time: time.Date(2200, 1, 1, 0, 0, 0, 0, time.Local), Status: pgtype.Present},
+				&pgtype.Timestamptz{Time: time.Time{}, Status: pgtype.Present},
+				&pgtype.Timestamptz{Time: time.Date(0, 1, 1, 0, 0, 0, 0, time.Local), Status: pgtype.Present},
+				&pgtype.Timestamptz{Time: time.Date(-100, 1, 1, 0, 0, 0, 0, time.Local), Status: pgtype.Present},
+				&pgtype.Timestamptz{Status: pgtype.Null},
+				&pgtype.Timestamptz{Status: pgtype.Present, InfinityModifier: pgtype.Infinity},
+				&pgtype.Timestamptz{Status: pgtype.Present, InfinityModifier: -pgtype.Infinity},
+			}, func(a, b interface{}) bool {
+				at := a.(pgtype.Timestamptz)
+				bt := b.(pgtype.Timestamptz)
+
+				return at.Time.Equal(bt.Time) && at.Status == bt.Status && at.InfinityModifier == bt.InfinityModifier
+			})
+		})
+	}
 }
 
 func TestTimestamptzNanosecondsTruncated(t *testing.T) {

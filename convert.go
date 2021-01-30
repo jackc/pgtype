@@ -478,7 +478,7 @@ func decodeTextTimestamp(layout string, s string, inLoc bool) (t time.Time, err 
 	// Convert time before common era (BC).
 	if bc {
 		year := (t.Year() - 1) * -1
-		t = time.Date(year, t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), time.UTC)
+		t = time.Date(year, t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), t.Location())
 	}
 	return t, nil
 }
@@ -488,7 +488,7 @@ func encodeTextTimestamp(layout string, t time.Time) string {
 	// Convert time before common era (BC).
 	if t.Before(time.Time{}) {
 		year := t.Year()*-1 + 1
-		t = time.Date(year, t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), time.UTC)
+		t = time.Date(year, t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), t.Location())
 		return t.Format(layout) + " BC"
 	}
 	return t.Format(layout)

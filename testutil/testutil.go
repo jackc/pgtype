@@ -434,3 +434,35 @@ func TestDatabaseSQLNullToGoZeroConversion(t testing.TB, driverName, pgTypeName 
 		t.Errorf("%s: did not convert null to zero", driverName)
 	}
 }
+
+func SetDatabaseTimezone(t *testing.T, name string) (revert func()) {
+	cfg, err := pgx.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	conn, err := pgx.ConnectConfig(context.Background(), cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer conn.Close(context.Background())
+	var original string
+	err = conn.QueryRow(context.Background(), "show time zone").Scan(&original)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = conn.Exec(context.Background(), fmt.Sprintf("alter database %s set timezone to '%s'", cfg.Database, name))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var reloaded bool
+	err = conn.QueryRow(context.Background(), "select pg_reload_conf()").Scan(&reloaded)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reloaded {
+		t.Fatalf("failed to reload Postgres configs")
+	}
+	return func() {
+		SetDatabaseTimezone(t, original)
+	}
+}
