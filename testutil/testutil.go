@@ -436,21 +436,22 @@ func TestDatabaseSQLNullToGoZeroConversion(t testing.TB, driverName, pgTypeName 
 }
 
 func SetDatabaseTimezone(t *testing.T, name string) (revert func()) {
-	cfg, err := pgx.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	conn, err := pgx.ConnectConfig(context.Background(), cfg)
+	conn, err := pgx.Connect(context.Background(), os.Getenv("PGX_TEST_DATABASE"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer conn.Close(context.Background())
+	var dbname string
+	err = conn.QueryRow(context.Background(), "select current_database()").Scan(&dbname)
+	if err != nil {
+		t.Fatal(err)
+	}
 	var original string
 	err = conn.QueryRow(context.Background(), "show time zone").Scan(&original)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = conn.Exec(context.Background(), fmt.Sprintf("alter database %s set timezone to '%s'", cfg.Database, name))
+	_, err = conn.Exec(context.Background(), fmt.Sprintf("alter database %s set timezone to '%s'", dbname, name))
 	if err != nil {
 		t.Fatal(err)
 	}
