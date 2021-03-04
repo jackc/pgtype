@@ -421,7 +421,18 @@ func (dst *Numeric) DecodeText(ci *ConnInfo, src []byte) error {
 }
 
 func parseNumericString(str string) (n *big.Int, exp int32, err error) {
-	parts := strings.SplitN(str, ".", 2)
+	parts := strings.SplitN(str, "e", 2)
+	if len(parts) > 1 {
+		sciExp, err := strconv.ParseInt(parts[1], 10, 32)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		n, exp, err = parseNumericString(parts[0])
+		return n, exp + int32(sciExp), err
+	}
+
+	parts = strings.SplitN(str, ".", 2)
 	digits := strings.Join(parts, "")
 
 	if len(parts) > 1 {

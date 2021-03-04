@@ -205,6 +205,7 @@ func TestNumericSet(t *testing.T) {
 		{source: uint32(1), result: &pgtype.Numeric{Int: big.NewInt(1), Status: pgtype.Present}},
 		{source: uint64(1), result: &pgtype.Numeric{Int: big.NewInt(1), Status: pgtype.Present}},
 		{source: "1", result: &pgtype.Numeric{Int: big.NewInt(1), Status: pgtype.Present}},
+		{source: "600000000000000e-12", result: &pgtype.Numeric{Int: big.NewInt(6), Exp: 2, Status: pgtype.Present}},
 		{source: _int8(1), result: &pgtype.Numeric{Int: big.NewInt(1), Status: pgtype.Present}},
 		{source: float64(1000), result: &pgtype.Numeric{Int: big.NewInt(1), Exp: 3, Status: pgtype.Present}},
 		{source: float64(1234), result: &pgtype.Numeric{Int: big.NewInt(1234), Exp: 0, Status: pgtype.Present}},
