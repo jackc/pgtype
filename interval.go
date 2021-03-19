@@ -4,11 +4,13 @@ import (
 	"database/sql/driver"
 	"encoding/binary"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/jackc/pgio"
+	"github.com/rickb777/date/period"
 	errors "golang.org/x/xerrors"
 )
 
@@ -85,17 +87,36 @@ func (src *Interval) AssignTo(dst interface{}) error {
 	return errors.Errorf("cannot decode %#v into %T", src, dst)
 }
 
-func (dst *Interval) DecodeText(ci *ConnInfo, src []byte) error {
-	if src == nil {
-		*dst = Interval{Status: Null}
-		return nil
+func (dst *Interval) decodeISO8601(input string) error {
+	d, err := period.Parse(input)
+	if err != nil {
+		return err
 	}
 
+	dst.Days = int32(d.Days())
+	dst.Months = int32(d.Months())
+
+	dst.Microseconds = int64((d.Hours() * microsecondsPerHour) + (d.Minutes() * microsecondsPerMinute) + (d.Seconds() * microsecondsPerSecond))
+
+	dst.Status = Present
+
+	return nil
+}
+
+func (dst *Interval) decodePostgresVerbose(input string) error {
+	return errors.Errorf("unimplemented")
+}
+
+func (dst *Interval) decodeSQL(input string) error {
+	return errors.Errorf("unimplemented")
+}
+
+func (dst *Interval) decodePostgres(input string) error {
 	var microseconds int64
 	var days int32
 	var months int32
 
-	parts := strings.Split(string(src), " ")
+	parts := strings.Split(input, " ")
 
 	for i := 0; i < len(parts)-1; i += 2 {
 		scalar, err := strconv.ParseInt(parts[i], 10, 64)
@@ -166,6 +187,42 @@ func (dst *Interval) DecodeText(ci *ConnInfo, src []byte) error {
 
 	*dst = Interval{Months: months, Days: days, Microseconds: microseconds, Status: Present}
 	return nil
+}
+
+func (dst *Interval) DecodeText(ci *ConnInfo, src []byte) error {
+	if src == nil {
+		*dst = Interval{Status: Null}
+		return nil
+	}
+
+	// Style Specification	Year-Month 	Interval	Day-Time Interval				Mixed Interval
+	// sql_standard			1-2						3 4:05:06						-1-2 +3 -4:05:06
+	// postgres				1 year 2 mons			3 days 04:05:06					-1 year -2 mons +3 days -04:05:06
+	// postgres_verbose		@ 1 year 2 mons			@ 3 days 4 hours 5 mins 6 secs	@ 1 year 2 mons -3 days 4 hours 5 mins 6 secs ago
+	// iso_8601				P1Y2M					P3DT4H5M6S						P-1Y-2M3DT-4H-5M-6S
+	inputText := string(src)
+	firstChar := string(inputText[0]) // we can ignore UTF-8 runes
+
+	postgresMatch := regexp.MustCompile(`^[\d-]`)
+	sqlMatch := regexp.MustCompile("[a-zA-Z]")
+
+	switch {
+	// ISO8601
+	case firstChar == "P":
+		return dst.decodeISO8601(inputText)
+	// PostgresVerbose
+	case firstChar == "@":
+		return dst.decodePostgresVerbose(inputText)
+	// Postgres
+	case postgresMatch.MatchString(inputText):
+		return dst.decodePostgres(inputText)
+	// SQL Standard
+	case !sqlMatch.MatchString(inputText):
+		return dst.decodeSQL(inputText)
+	default:
+		return errors.Errorf("bad interval format")
+	}
+
 }
 
 func (dst *Interval) DecodeBinary(ci *ConnInfo, src []byte) error {
