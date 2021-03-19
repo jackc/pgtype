@@ -3,6 +3,7 @@ package pgtype
 import (
 	"database/sql/driver"
 	"net"
+	"strings"
 
 	errors "golang.org/x/xerrors"
 )
@@ -122,7 +123,7 @@ func (src *Inet) AssignTo(dst interface{}) error {
 	return errors.Errorf("cannot decode %#v into %T", src, dst)
 }
 
-func (dst *Inet) DecodeText(ci *ConnInfo, src []byte) error {
+func (dst *Inet) DecodeText(_ *ConnInfo, src []byte) error {
 	if src == nil {
 		*dst = Inet{Status: Null}
 		return nil
@@ -150,7 +151,7 @@ func (dst *Inet) DecodeText(ci *ConnInfo, src []byte) error {
 	return nil
 }
 
-func (dst *Inet) DecodeBinary(ci *ConnInfo, src []byte) error {
+func (dst *Inet) DecodeBinary(_ *ConnInfo, src []byte) error {
 	if src == nil {
 		*dst = Inet{Status: Null}
 		return nil
@@ -216,6 +217,27 @@ func (src Inet) EncodeBinary(ci *ConnInfo, buf []byte) ([]byte, error) {
 	buf = append(buf, byte(len(src.IPNet.IP)))
 
 	return append(buf, src.IPNet.IP...), nil
+}
+
+// MarshalJSON implements the json.Marshaler interface
+func (src Inet) MarshalJSON() ([]byte, error) {
+	if src.Status != Present {
+		return []byte(`""`), nil
+	}
+	v, err := src.Value()
+	if err != nil || v == nil {
+		return []byte(`""`), err
+	}
+	return []byte(`"` + v.(string) + `"`), nil
+}
+
+// UnmarshalJSON implements the json.Marshaler interface
+func (dst *Inet) UnmarshalJSON(data []byte) error {
+	trimmed := strings.Trim(string(data), `"`)
+	if trimmed == "" {
+		return dst.DecodeText(nil, nil)
+	}
+	return dst.DecodeText(nil, []byte(trimmed))
 }
 
 // Scan implements the database/sql Scanner interface.
