@@ -16,7 +16,7 @@ type CompositeTypeField struct {
 }
 
 type CompositeType struct {
-	status Status
+	Status Status
 
 	typeName string
 
@@ -58,7 +58,7 @@ func NewCompositeTypeValues(typeName string, fields []CompositeTypeField, values
 }
 
 func (src CompositeType) Get() interface{} {
-	switch src.status {
+	switch src.Status {
 	case Present:
 		results := make(map[string]interface{}, len(src.valueTranscoders))
 		for i := range src.valueTranscoders {
@@ -68,7 +68,7 @@ func (src CompositeType) Get() interface{} {
 	case Null:
 		return nil
 	default:
-		return src.status
+		return src.Status
 	}
 }
 
@@ -96,7 +96,7 @@ func (ct *CompositeType) Fields() []CompositeTypeField {
 
 func (dst *CompositeType) Set(src interface{}) error {
 	if src == nil {
-		dst.status = Null
+		dst.Status = Null
 		return nil
 	}
 
@@ -110,10 +110,10 @@ func (dst *CompositeType) Set(src interface{}) error {
 				return err
 			}
 		}
-		dst.status = Present
+		dst.Status = Present
 	case *[]interface{}:
 		if value == nil {
-			dst.status = Null
+			dst.Status = Null
 			return nil
 		}
 		return dst.Set(*value)
@@ -126,7 +126,7 @@ func (dst *CompositeType) Set(src interface{}) error {
 
 // AssignTo should never be called on composite value directly
 func (src CompositeType) AssignTo(dst interface{}) error {
-	switch src.status {
+	switch src.Status {
 	case Present:
 		switch v := dst.(type) {
 		case []interface{}:
@@ -219,7 +219,7 @@ func (src CompositeType) assignToPtrStruct(dst interface{}) (bool, error) {
 }
 
 func (src CompositeType) EncodeBinary(ci *ConnInfo, buf []byte) (newBuf []byte, err error) {
-	switch src.status {
+	switch src.Status {
 	case Null:
 		return nil, nil
 	case Undefined:
@@ -240,7 +240,7 @@ func (src CompositeType) EncodeBinary(ci *ConnInfo, buf []byte) (newBuf []byte, 
 // type mismatch
 func (dst *CompositeType) DecodeBinary(ci *ConnInfo, buf []byte) error {
 	if buf == nil {
-		dst.status = Null
+		dst.Status = Null
 		return nil
 	}
 
@@ -254,14 +254,14 @@ func (dst *CompositeType) DecodeBinary(ci *ConnInfo, buf []byte) error {
 		return scanner.Err()
 	}
 
-	dst.status = Present
+	dst.Status = Present
 
 	return nil
 }
 
 func (dst *CompositeType) DecodeText(ci *ConnInfo, buf []byte) error {
 	if buf == nil {
-		dst.status = Null
+		dst.Status = Null
 		return nil
 	}
 
@@ -275,13 +275,13 @@ func (dst *CompositeType) DecodeText(ci *ConnInfo, buf []byte) error {
 		return scanner.Err()
 	}
 
-	dst.status = Present
+	dst.Status = Present
 
 	return nil
 }
 
 func (src CompositeType) EncodeText(ci *ConnInfo, buf []byte) (newBuf []byte, err error) {
-	switch src.status {
+	switch src.Status {
 	case Null:
 		return nil, nil
 	case Undefined:
@@ -307,7 +307,7 @@ type CompositeBinaryScanner struct {
 	err        error
 }
 
-// NewCompositeBinaryScanner a scanner over a binary encoded composite balue.
+// NewCompositeBinaryScanner is a scanner over a binary encoded composite value.
 func NewCompositeBinaryScanner(ci *ConnInfo, src []byte) *CompositeBinaryScanner {
 	rp := 0
 	if len(src[rp:]) < 4 {
@@ -338,7 +338,7 @@ func (cfs *CompositeBinaryScanner) ScanDecoder(d BinaryDecoder) {
 	}
 }
 
-// ScanDecoder calls Next and scans the result into d.
+// ScanValue calls Next and scans the result into d.
 func (cfs *CompositeBinaryScanner) ScanValue(d interface{}) {
 	if cfs.err != nil {
 		return
