@@ -783,7 +783,7 @@ func (ci *ConnInfo) PlanScan(oid uint32, formatCode int16, dst interface{}) Scan
 			}
 		case *[]byte:
 			switch oid {
-			case ByteaOID, TextOID, VarcharOID, JSONOID:
+			case ByteaOID, TextOID, VarcharOID, JSONOID, JSONBOID:
 				return scanPlanBinaryBytes{}
 			}
 		case BinaryDecoder:
