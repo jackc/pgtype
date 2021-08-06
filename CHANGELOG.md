@@ -1,3 +1,7 @@
+# 1.8.2 (August 6, 2021)
+
+* Dependencies bump & go mod tidy
+
 # 1.8.1 (July 24, 2021)
 
 * Cleaned up Go module dependency chain
