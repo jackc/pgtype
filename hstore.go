@@ -16,13 +16,13 @@ import (
 // Hstore represents an hstore column that can be null or have null values
 // associated with its keys.
 type Hstore struct {
-	Map    map[string]Text
-	Status Status
+	Map   map[string]Text
+	Valid bool
 }
 
 func (dst *Hstore) Set(src interface{}) error {
 	if src == nil {
-		*dst = Hstore{Status: Null}
+		*dst = Hstore{}
 		return nil
 	}
 
@@ -37,9 +37,9 @@ func (dst *Hstore) Set(src interface{}) error {
 	case map[string]string:
 		m := make(map[string]Text, len(value))
 		for k, v := range value {
-			m[k] = Text{String: v, Status: Present}
+			m[k] = Text{String: v, Valid: true}
 		}
-		*dst = Hstore{Map: m, Status: Present}
+		*dst = Hstore{Map: m, Valid: true}
 	default:
 		return fmt.Errorf("cannot convert %v to Hstore", src)
 	}
@@ -48,45 +48,38 @@ func (dst *Hstore) Set(src interface{}) error {
 }
 
 func (dst Hstore) Get() interface{} {
-	switch dst.Status {
-	case Present:
-		return dst.Map
-	case Null:
+	if !dst.Valid {
 		return nil
-	default:
-		return dst.Status
 	}
+	return dst.Map
 }
 
 func (src *Hstore) AssignTo(dst interface{}) error {
-	switch src.Status {
-	case Present:
-		switch v := dst.(type) {
-		case *map[string]string:
-			*v = make(map[string]string, len(src.Map))
-			for k, val := range src.Map {
-				if val.Status != Present {
-					return fmt.Errorf("cannot decode %#v into %T", src, dst)
-				}
-				(*v)[k] = val.String
-			}
-			return nil
-		default:
-			if nextDst, retry := GetAssignToDstType(dst); retry {
-				return src.AssignTo(nextDst)
-			}
-			return fmt.Errorf("unable to assign to %T", dst)
-		}
-	case Null:
+	if !src.Valid {
 		return NullAssignTo(dst)
 	}
 
-	return fmt.Errorf("cannot decode %#v into %T", src, dst)
+	switch v := dst.(type) {
+	case *map[string]string:
+		*v = make(map[string]string, len(src.Map))
+		for k, val := range src.Map {
+			if !val.Valid {
+				return fmt.Errorf("cannot decode %#v into %T", src, dst)
+			}
+			(*v)[k] = val.String
+		}
+		return nil
+	default:
+		if nextDst, retry := GetAssignToDstType(dst); retry {
+			return src.AssignTo(nextDst)
+		}
+		return fmt.Errorf("unable to assign to %T", dst)
+	}
 }
 
 func (dst *Hstore) DecodeText(ci *ConnInfo, src []byte) error {
 	if src == nil {
-		*dst = Hstore{Status: Null}
+		*dst = Hstore{}
 		return nil
 	}
 
@@ -100,13 +93,13 @@ func (dst *Hstore) DecodeText(ci *ConnInfo, src []byte) error {
 		m[keys[i]] = values[i]
 	}
 
-	*dst = Hstore{Map: m, Status: Present}
+	*dst = Hstore{Map: m, Valid: true}
 	return nil
 }
 
 func (dst *Hstore) DecodeBinary(ci *ConnInfo, src []byte) error {
 	if src == nil {
-		*dst = Hstore{Status: Null}
+		*dst = Hstore{}
 		return nil
 	}
 
@@ -153,17 +146,14 @@ func (dst *Hstore) DecodeBinary(ci *ConnInfo, src []byte) error {
 		m[key] = value
 	}
 
-	*dst = Hstore{Map: m, Status: Present}
+	*dst = Hstore{Map: m, Valid: true}
 
 	return nil
 }
 
 func (src Hstore) EncodeText(ci *ConnInfo, buf []byte) ([]byte, error) {
-	switch src.Status {
-	case Null:
+	if !src.Valid {
 		return nil, nil
-	case Undefined:
-		return nil, errUndefined
 	}
 
 	firstPair := true
@@ -195,11 +185,8 @@ func (src Hstore) EncodeText(ci *ConnInfo, buf []byte) ([]byte, error) {
 }
 
 func (src Hstore) EncodeBinary(ci *ConnInfo, buf []byte) ([]byte, error) {
-	switch src.Status {
-	case Null:
+	if !src.Valid {
 		return nil, nil
-	case Undefined:
-		return nil, errUndefined
 	}
 
 	buf = pgio.AppendInt32(buf, int32(len(src.Map)))
@@ -349,7 +336,7 @@ func parseHstore(s string) (k []string, v []Text, err error) {
 		case hsVal:
 			switch r {
 			case '"': //End of the value
-				values = append(values, Text{String: buf.String(), Status: Present})
+				values = append(values, Text{String: buf.String(), Valid: true})
 				buf = bytes.Buffer{}
 				state = hsNext
 			case '\\': //Potential escaped character
@@ -378,7 +365,7 @@ func parseHstore(s string) (k []string, v []Text, err error) {
 				nulBuf[i] = r
 			}
 			if nulBuf[0] == 'U' && nulBuf[1] == 'L' && nulBuf[2] == 'L' {
-				values = append(values, Text{Status: Null})
+				values = append(values, Text{})
 				state = hsNext
 			} else {
 				err = fmt.Errorf("Invalid NULL value: 'N%s'", string(nulBuf))
@@ -417,7 +404,7 @@ func parseHstore(s string) (k []string, v []Text, err error) {
 // Scan implements the database/sql Scanner interface.
 func (dst *Hstore) Scan(src interface{}) error {
 	if src == nil {
-		*dst = Hstore{Status: Null}
+		*dst = Hstore{}
 		return nil
 	}
 

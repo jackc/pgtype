@@ -20,7 +20,7 @@ func (dst BPChar) Get() interface{} {
 
 // AssignTo assigns from src to dst.
 func (src *BPChar) AssignTo(dst interface{}) error {
-	if src.Status == Present {
+	if src.Valid {
 		switch v := dst.(type) {
 		case *rune:
 			runes := []rune(src.String)

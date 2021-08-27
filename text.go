@@ -8,12 +8,12 @@ import (
 
 type Text struct {
 	String string
-	Status Status
+	Valid  bool
 }
 
 func (dst *Text) Set(src interface{}) error {
 	if src == nil {
-		*dst = Text{Status: Null}
+		*dst = Text{}
 		return nil
 	}
 
@@ -26,18 +26,18 @@ func (dst *Text) Set(src interface{}) error {
 
 	switch value := src.(type) {
 	case string:
-		*dst = Text{String: value, Status: Present}
+		*dst = Text{String: value, Valid: true}
 	case *string:
 		if value == nil {
-			*dst = Text{Status: Null}
+			*dst = Text{}
 		} else {
-			*dst = Text{String: *value, Status: Present}
+			*dst = Text{String: *value, Valid: true}
 		}
 	case []byte:
 		if value == nil {
-			*dst = Text{Status: Null}
+			*dst = Text{}
 		} else {
-			*dst = Text{String: string(value), Status: Present}
+			*dst = Text{String: string(value), Valid: true}
 		}
 	default:
 		if originalSrc, ok := underlyingStringType(src); ok {
@@ -50,38 +50,31 @@ func (dst *Text) Set(src interface{}) error {
 }
 
 func (dst Text) Get() interface{} {
-	switch dst.Status {
-	case Present:
-		return dst.String
-	case Null:
+	if !dst.Valid {
 		return nil
-	default:
-		return dst.Status
 	}
+	return dst.String
 }
 
 func (src *Text) AssignTo(dst interface{}) error {
-	switch src.Status {
-	case Present:
-		switch v := dst.(type) {
-		case *string:
-			*v = src.String
-			return nil
-		case *[]byte:
-			*v = make([]byte, len(src.String))
-			copy(*v, src.String)
-			return nil
-		default:
-			if nextDst, retry := GetAssignToDstType(dst); retry {
-				return src.AssignTo(nextDst)
-			}
-			return fmt.Errorf("unable to assign to %T", dst)
-		}
-	case Null:
+	if !src.Valid {
 		return NullAssignTo(dst)
 	}
 
-	return fmt.Errorf("cannot decode %#v into %T", src, dst)
+	switch v := dst.(type) {
+	case *string:
+		*v = src.String
+		return nil
+	case *[]byte:
+		*v = make([]byte, len(src.String))
+		copy(*v, src.String)
+		return nil
+	default:
+		if nextDst, retry := GetAssignToDstType(dst); retry {
+			return src.AssignTo(nextDst)
+		}
+		return fmt.Errorf("unable to assign to %T", dst)
+	}
 }
 
 func (Text) PreferredResultFormat() int16 {
@@ -90,11 +83,11 @@ func (Text) PreferredResultFormat() int16 {
 
 func (dst *Text) DecodeText(ci *ConnInfo, src []byte) error {
 	if src == nil {
-		*dst = Text{Status: Null}
+		*dst = Text{}
 		return nil
 	}
 
-	*dst = Text{String: string(src), Status: Present}
+	*dst = Text{String: string(src), Valid: true}
 	return nil
 }
 
@@ -107,11 +100,8 @@ func (Text) PreferredParamFormat() int16 {
 }
 
 func (src Text) EncodeText(ci *ConnInfo, buf []byte) ([]byte, error) {
-	switch src.Status {
-	case Null:
+	if !src.Valid {
 		return nil, nil
-	case Undefined:
-		return nil, errUndefined
 	}
 
 	return append(buf, src.String...), nil
@@ -124,7 +114,7 @@ func (src Text) EncodeBinary(ci *ConnInfo, buf []byte) ([]byte, error) {
 // Scan implements the database/sql Scanner interface.
 func (dst *Text) Scan(src interface{}) error {
 	if src == nil {
-		*dst = Text{Status: Null}
+		*dst = Text{}
 		return nil
 	}
 
@@ -142,27 +132,18 @@ func (dst *Text) Scan(src interface{}) error {
 
 // Value implements the database/sql/driver Valuer interface.
 func (src Text) Value() (driver.Value, error) {
-	switch src.Status {
-	case Present:
-		return src.String, nil
-	case Null:
+	if !src.Valid {
 		return nil, nil
-	default:
-		return nil, errUndefined
 	}
+	return src.String, nil
 }
 
 func (src Text) MarshalJSON() ([]byte, error) {
-	switch src.Status {
-	case Present:
-		return json.Marshal(src.String)
-	case Null:
+	if !src.Valid {
 		return []byte("null"), nil
-	case Undefined:
-		return nil, errUndefined
 	}
 
-	return nil, errBadStatus
+	return json.Marshal(src.String)
 }
 
 func (dst *Text) UnmarshalJSON(b []byte) error {
@@ -173,9 +154,9 @@ func (dst *Text) UnmarshalJSON(b []byte) error {
 	}
 
 	if s == nil {
-		*dst = Text{Status: Null}
+		*dst = Text{}
 	} else {
-		*dst = Text{String: *s, Status: Present}
+		*dst = Text{String: *s, Valid: true}
 	}
 
 	return nil
