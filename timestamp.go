@@ -110,7 +110,7 @@ func (dst *Timestamp) DecodeText(ci *ConnInfo, src []byte) error {
 	case "-infinity":
 		*dst = Timestamp{Status: Present, InfinityModifier: -Infinity}
 	default:
-		tim, err := time.Parse(pgTimestampFormat, sbuf)
+		tim, err := DecodeTextTimestamp(sbuf)
 		if err != nil {
 			return err
 		}
@@ -166,7 +166,7 @@ func (src Timestamp) EncodeText(ci *ConnInfo, buf []byte) ([]byte, error) {
 
 	switch src.InfinityModifier {
 	case None:
-		s = src.Time.Truncate(time.Microsecond).Format(pgTimestampFormat)
+		s = EncodeTextTimestamp(src.Time)
 	case Infinity:
 		s = "infinity"
 	case NegativeInfinity:

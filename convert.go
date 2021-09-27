@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"strings"
 	"time"
 )
 
@@ -469,4 +470,54 @@ func init() {
 		reflect.Uint64:  reflect.TypeOf(uint64(0)),
 		reflect.String:  reflect.TypeOf(""),
 	}
+}
+
+func trimTimestampBC(s string) (string, bool) {
+	bc := false
+	if strings.HasSuffix(s, "BC") {
+		s = strings.TrimSpace(s[:len(s)-2])
+		bc = true
+	}
+	return s, bc
+}
+
+func decodeTextTimestamp(layout string, s string, inLoc bool) (t time.Time, err error) {
+	s, bc := trimTimestampBC(s)
+	if inLoc {
+		t, err = time.Parse(layout, s)
+	} else {
+		t, err = time.ParseInLocation(layout, s, time.UTC)
+	}
+	if err != nil {
+		return
+	}
+	// Convert time before common era (BC).
+	if bc {
+		year := (t.Year() - 1) * -1
+		t = time.Date(year, t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), t.Location())
+	}
+	return t, nil
+}
+
+func encodeTextTimestamp(layout string, t time.Time) string {
+	t = t.Truncate(time.Microsecond)
+	// Convert time before common era (BC).
+	if t.Before(time.Time{}) {
+		year := t.Year()*-1 + 1
+		t = time.Date(year, t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), t.Location())
+		return t.Format(layout) + " BC"
+	}
+	return t.Format(layout)
+}
+
+// DecodeTextTimestamp decodes string timestamp to time.Time.
+// Supports converting timestamp from BC (before common era) form.
+func DecodeTextTimestamp(s string) (time.Time, error) {
+	return decodeTextTimestamp(pgTimestampFormat, s, false)
+}
+
+// EncodeTextTimestamp encodes time.Time to timestamp string.
+// If given time before common era then function converts it to correct Postgres form with BC suffix.
+func EncodeTextTimestamp(t time.Time) string {
+	return encodeTextTimestamp(pgTimestampFormat, t)
 }
