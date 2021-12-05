@@ -369,6 +369,8 @@ func (src *Numeric) AssignTo(dst interface{}) error {
 				return fmt.Errorf("%d is greater than maximum value for %T", normalizedInt, *v)
 			}
 			*v = normalizedInt.Uint64()
+		case **Numeric:
+			*v = src
 		default:
 			if nextDst, retry := GetAssignToDstType(dst); retry {
 				return src.AssignTo(nextDst)

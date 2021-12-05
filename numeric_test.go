@@ -263,6 +263,7 @@ func TestNumericAssignTo(t *testing.T) {
 	var f64 float64
 	var pf32 *float32
 	var pf64 *float64
+	var pNum *pgtype.Numeric
 
 	simpleTests := []struct {
 		src      *pgtype.Numeric
@@ -331,6 +332,7 @@ func TestNumericAssignTo(t *testing.T) {
 	}{
 		{src: &pgtype.Numeric{Int: big.NewInt(42), Status: pgtype.Present}, dst: &pf32, expected: float32(42)},
 		{src: &pgtype.Numeric{Int: big.NewInt(42), Status: pgtype.Present}, dst: &pf64, expected: float64(42)},
+		{src: &pgtype.Numeric{Int: big.NewInt(42), Status: pgtype.Present}, dst: &pNum, expected: pgtype.Numeric{Int: big.NewInt(42), Status: pgtype.Present}},
 	}
 
 	for i, tt := range pointerAllocTests {
@@ -339,7 +341,7 @@ func TestNumericAssignTo(t *testing.T) {
 			t.Errorf("%d: %v", i, err)
 		}
 
-		if dst := reflect.ValueOf(tt.dst).Elem().Elem().Interface(); dst != tt.expected {
+		if dst := reflect.ValueOf(tt.dst).Elem().Elem().Interface(); !reflect.DeepEqual(dst, tt.expected) {
 			t.Errorf("%d: expected %v to assign %v, but result was %v", i, tt.src, tt.expected, dst)
 		}
 	}
