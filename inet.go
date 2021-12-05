@@ -246,7 +246,7 @@ func (dst *Inet) Scan(src interface{}) error {
 	case []byte:
 		srcCopy := make([]byte, len(src))
 		copy(srcCopy, src)
-		return dst.DecodeText(nil, srcCopy)
+		return dst.DecodeBinary(nil, srcCopy)
 	}
 
 	return fmt.Errorf("cannot scan %T", src)
