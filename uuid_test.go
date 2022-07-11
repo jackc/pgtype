@@ -21,6 +21,16 @@ type SomeUUIDWrapper struct {
 }
 
 type SomeUUIDType [16]byte
+type StringUUIDType string
+type GetterUUIDType string
+
+func (s StringUUIDType) String() string {
+	return string(s)
+}
+
+func (s GetterUUIDType) Get() interface{} {
+	return string(s)
+}
 
 func TestUUIDSet(t *testing.T) {
 	successfulTests := []struct {
@@ -53,6 +63,13 @@ func TestUUIDSet(t *testing.T) {
 		},
 		{
 			source: "000102030405060708090a0b0c0d0e0f",
+			result: pgtype.UUID{Bytes: [16]byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}, Status: pgtype.Present},
+		},
+		{
+			source: StringUUIDType("00010203-0405-0607-0809-0a0b0c0d0e0f"),
+			result: pgtype.UUID{Bytes: [16]byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}, Status: pgtype.Present},
+		}, {
+			source: GetterUUIDType("00010203-0405-0607-0809-0a0b0c0d0e0f"),
 			result: pgtype.UUID{Bytes: [16]byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}, Status: pgtype.Present},
 		},
 	}
