@@ -198,7 +198,7 @@ func (dst *Inet) DecodeBinary(ci *ConnInfo, src []byte) error {
 	}
 
 	if len(src) != 8 && len(src) != 20 {
-		return fmt.Errorf("Received an invalid size for a inet: %d", len(src))
+		return fmt.Errorf("Received an invalid size for an inet: %d", len(src))
 	}
 
 	// ignore family

@@ -141,7 +141,7 @@ func TestPgxSuccessfulTranscodeEqFunc(t testing.TB, pgTypeName string, values []
 					}
 				}
 
-				// Derefence value if it is a pointer
+				// Dereference value if it is a pointer
 				derefV := v
 				refVal := reflect.ValueOf(v)
 				if refVal.Kind() == reflect.Ptr {
@@ -173,7 +173,7 @@ func TestDatabaseSQLSuccessfulTranscodeEqFunc(t testing.TB, driverName, pgTypeNa
 	}
 
 	for i, v := range values {
-		// Derefence value if it is a pointer
+		// Dereference value if it is a pointer
 		derefV := v
 		refVal := reflect.ValueOf(v)
 		if refVal.Kind() == reflect.Ptr {
@@ -235,7 +235,7 @@ func TestPgxSuccessfulNormalizeEqFunc(t testing.TB, tests []NormalizeTest, eqFun
 				t.Logf("Skipping: %#v does not implement %v", tt.Value, fc.name)
 				continue
 			}
-			// Derefence value if it is a pointer
+			// Dereference value if it is a pointer
 			derefV := tt.Value
 			refVal := reflect.ValueOf(tt.Value)
 			if refVal.Kind() == reflect.Ptr {
@@ -266,7 +266,7 @@ func TestDatabaseSQLSuccessfulNormalizeEqFunc(t testing.TB, driverName string, t
 			continue
 		}
 
-		// Derefence value if it is a pointer
+		// Dereference value if it is a pointer
 		derefV := tt.Value
 		refVal := reflect.ValueOf(tt.Value)
 		if refVal.Kind() == reflect.Ptr {
@@ -367,7 +367,7 @@ func TestPgxNullToGoZeroConversion(t testing.TB, pgTypeName string, zero interfa
 			}
 		}
 
-		// Derefence value if it is a pointer
+		// Dereference value if it is a pointer
 		derefZero := zero
 		refVal := reflect.ValueOf(zero)
 		if refVal.Kind() == reflect.Ptr {
@@ -416,7 +416,7 @@ func TestDatabaseSQLNullToGoZeroConversion(t testing.TB, driverName, pgTypeName 
 		t.Fatal(err)
 	}
 
-	// Derefence value if it is a pointer
+	// Dereference value if it is a pointer
 	derefZero := zero
 	refVal := reflect.ValueOf(zero)
 	if refVal.Kind() == reflect.Ptr {
