@@ -158,6 +158,12 @@ func (src *Inet) AssignTo(dst interface{}) error {
 			copy(*v, src.IPNet.IP)
 			return nil
 		default:
+			if tv, ok := dst.(encoding.TextUnmarshaler); ok {
+				if err := tv.UnmarshalText([]byte(src.IPNet.String())); err != nil {
+					return fmt.Errorf("cannot unmarshal %v to %T: %w", src, dst, err)
+				}
+				return nil
+			}
 			if nextDst, retry := GetAssignToDstType(dst); retry {
 				return src.AssignTo(nextDst)
 			}
