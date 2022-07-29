@@ -88,6 +88,9 @@ func (dst *Inet) Set(src interface{}) error {
 			return dst.Set(*value)
 		}
 	default:
+		if sv, ok := src.(fmt.Stringer); ok {
+			return dst.Set(sv.String())
+		}
 		if originalSrc, ok := underlyingPtrType(src); ok {
 			return dst.Set(originalSrc)
 		}

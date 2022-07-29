@@ -1,8 +1,10 @@
 package pgtype_test
 
 import (
+	"fmt"
 	"net"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/jackc/pgtype"
@@ -58,6 +60,11 @@ func TestInetSet(t *testing.T) {
 		{source: net.ParseIP(""), result: pgtype.Inet{Status: pgtype.Null}},
 		{source: "0.0.0.0/8", result: pgtype.Inet{IPNet: mustParseInet(t, "0.0.0.0/8"), Status: pgtype.Present}},
 		{source: "::ffff:0.0.0.0/104", result: pgtype.Inet{IPNet: &net.IPNet{IP: net.ParseIP("::ffff:0.0.0.0"), Mask: net.CIDRMask(104, 128)}, Status: pgtype.Present}},
+		{source: func(s string) fmt.Stringer {
+			var b strings.Builder
+			b.WriteString(s)
+			return &b
+		}("127.0.0.1"), result: pgtype.Inet{IPNet: mustParseInet(t, "127.0.0.1"), Status: pgtype.Present}},
 	}
 
 	for i, tt := range successfulTests {
