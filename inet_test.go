@@ -46,6 +46,14 @@ func TestCidrTranscode(t *testing.T) {
 	})
 }
 
+type textMarshaler struct {
+	Text string
+}
+
+func (t textMarshaler) MarshalText() (text []byte, err error) {
+	return []byte(t.Text), err
+}
+
 func TestInetSet(t *testing.T) {
 	successfulTests := []struct {
 		source interface{}
@@ -60,6 +68,7 @@ func TestInetSet(t *testing.T) {
 		{source: net.ParseIP(""), result: pgtype.Inet{Status: pgtype.Null}},
 		{source: "0.0.0.0/8", result: pgtype.Inet{IPNet: mustParseInet(t, "0.0.0.0/8"), Status: pgtype.Present}},
 		{source: "::ffff:0.0.0.0/104", result: pgtype.Inet{IPNet: &net.IPNet{IP: net.ParseIP("::ffff:0.0.0.0"), Mask: net.CIDRMask(104, 128)}, Status: pgtype.Present}},
+		{source: textMarshaler{"127.0.0.1"}, result: pgtype.Inet{IPNet: mustParseInet(t, "127.0.0.1"), Status: pgtype.Present}},
 		{source: func(s string) fmt.Stringer {
 			var b strings.Builder
 			b.WriteString(s)

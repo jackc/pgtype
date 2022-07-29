@@ -2,6 +2,7 @@ package pgtype
 
 import (
 	"database/sql/driver"
+	"encoding"
 	"fmt"
 	"net"
 	"strings"
@@ -88,6 +89,13 @@ func (dst *Inet) Set(src interface{}) error {
 			return dst.Set(*value)
 		}
 	default:
+		if tv, ok := src.(encoding.TextMarshaler); ok {
+			text, err := tv.MarshalText()
+			if err != nil {
+				return fmt.Errorf("cannot marshal %v: %w", value, err)
+			}
+			return dst.Set(string(text))
+		}
 		if sv, ok := src.(fmt.Stringer); ok {
 			return dst.Set(sv.String())
 		}
