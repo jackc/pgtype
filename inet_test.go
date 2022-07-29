@@ -93,11 +93,22 @@ func TestInetSet(t *testing.T) {
 	}
 }
 
+type textUnmarshaler struct {
+	Text string
+}
+
+func (u *textUnmarshaler) UnmarshalText(text []byte) error {
+	u.Text = string(text)
+	return nil
+}
+
 func TestInetAssignTo(t *testing.T) {
 	var ipnet net.IPNet
 	var pipnet *net.IPNet
 	var ip net.IP
 	var pip *net.IP
+	var um textUnmarshaler
+	var pum *textUnmarshaler
 
 	simpleTests := []struct {
 		src      pgtype.Inet
@@ -106,8 +117,10 @@ func TestInetAssignTo(t *testing.T) {
 	}{
 		{src: pgtype.Inet{IPNet: mustParseCIDR(t, "127.0.0.1/32"), Status: pgtype.Present}, dst: &ipnet, expected: *mustParseCIDR(t, "127.0.0.1/32")},
 		{src: pgtype.Inet{IPNet: mustParseCIDR(t, "127.0.0.1/32"), Status: pgtype.Present}, dst: &ip, expected: mustParseCIDR(t, "127.0.0.1/32").IP},
+		{src: pgtype.Inet{IPNet: mustParseCIDR(t, "127.0.0.1/32"), Status: pgtype.Present}, dst: &um, expected: textUnmarshaler{"127.0.0.1/32"}},
 		{src: pgtype.Inet{Status: pgtype.Null}, dst: &pipnet, expected: ((*net.IPNet)(nil))},
 		{src: pgtype.Inet{Status: pgtype.Null}, dst: &pip, expected: ((*net.IP)(nil))},
+		{src: pgtype.Inet{Status: pgtype.Null}, dst: &pum, expected: ((*textUnmarshaler)(nil))},
 	}
 
 	for i, tt := range simpleTests {
