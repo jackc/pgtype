@@ -26,6 +26,7 @@ const (
 	XIDOID              = 28
 	CIDOID              = 29
 	JSONOID             = 114
+	JSONArrayOID        = 199
 	PointOID            = 600
 	LsegOID             = 601
 	PathOID             = 602
@@ -297,6 +298,7 @@ func NewConnInfo() *ConnInfo {
 	ci.RegisterDataType(DataType{Value: &Int8multirange{}, Name: "int8multirange", OID: Int8multirangeOID})
 	ci.RegisterDataType(DataType{Value: &Interval{}, Name: "interval", OID: IntervalOID})
 	ci.RegisterDataType(DataType{Value: &JSON{}, Name: "json", OID: JSONOID})
+	ci.RegisterDataType(DataType{Value: &JSONArray{}, Name: "_json", OID: JSONArrayOID})
 	ci.RegisterDataType(DataType{Value: &JSONB{}, Name: "jsonb", OID: JSONBOID})
 	ci.RegisterDataType(DataType{Value: &JSONBArray{}, Name: "_jsonb", OID: JSONBArrayOID})
 	ci.RegisterDataType(DataType{Value: &Line{}, Name: "line", OID: LineOID})
@@ -941,6 +943,7 @@ func init() {
 		"_timestamptz":   &TimestamptzArray{},
 		"_uuid":          &UUIDArray{},
 		"_varchar":       &VarcharArray{},
+		"_json":          &JSONArray{},
 		"_jsonb":         &JSONBArray{},
 		"aclitem":        &ACLItem{},
 		"bit":            &Bit{},
