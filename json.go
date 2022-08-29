@@ -107,6 +107,9 @@ func (src *JSON) AssignTo(dst interface{}) error {
 			data = []byte("null")
 		}
 
+		p := reflect.ValueOf(dst).Elem()
+		p.Set(reflect.Zero(p.Type()))
+		
 		return json.Unmarshal(data, dst)
 	}
 
