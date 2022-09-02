@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 )
 
 type JSON struct {
@@ -109,7 +110,7 @@ func (src *JSON) AssignTo(dst interface{}) error {
 
 		p := reflect.ValueOf(dst).Elem()
 		p.Set(reflect.Zero(p.Type()))
-		
+
 		return json.Unmarshal(data, dst)
 	}
 
