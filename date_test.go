@@ -1,6 +1,8 @@
 package pgtype_test
 
 import (
+	"database/sql/driver"
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -8,6 +10,37 @@ import (
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgtype/testutil"
 )
+
+type customDate struct {
+	t time.Time
+}
+
+func (d customDate) Value() (driver.Value, error) {
+	return d.t.Format("2006-01-02"), nil
+}
+
+func (d *customDate) Scan(src interface{}) (err error) {
+	if src == nil {
+		d.t = time.Time{}
+		return nil
+	}
+
+	switch v := src.(type) {
+	case int64:
+		d.t = time.Unix(v, 0).UTC()
+	case float64:
+		d.t = time.Unix(int64(v), 0).UTC()
+	case string:
+		d.t, err = time.Parse("2006-01-02", v)
+	case []byte:
+		d.t, err = time.Parse("2006-01-02", string(v))
+	case time.Time:
+		d.t = v
+	default:
+		err = fmt.Errorf("failed to scan type '%T' into date", src)
+	}
+	return err
+}
 
 func TestDateTranscode(t *testing.T) {
 	testutil.TestSuccessfulTranscodeEqFunc(t, "date", []interface{}{
@@ -43,6 +76,7 @@ func TestDateSet(t *testing.T) {
 		{source: time.Date(2200, 1, 1, 0, 0, 0, 0, time.UTC), result: pgtype.Date{Time: time.Date(2200, 1, 1, 0, 0, 0, 0, time.UTC), Status: pgtype.Present}},
 		{source: _time(time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)), result: pgtype.Date{Time: time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC), Status: pgtype.Present}},
 		{source: "1999-12-31", result: pgtype.Date{Time: time.Date(1999, 12, 31, 0, 0, 0, 0, time.UTC), Status: pgtype.Present}},
+		{source: customDate{t: time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)}, result: pgtype.Date{Time: time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC), Status: pgtype.Present}},
 	}
 
 	for i, tt := range successfulTests {
@@ -68,6 +102,7 @@ func TestDateAssignTo(t *testing.T) {
 		expected interface{}
 	}{
 		{src: pgtype.Date{Time: time.Date(2015, 1, 1, 0, 0, 0, 0, time.Local), Status: pgtype.Present}, dst: &tim, expected: time.Date(2015, 1, 1, 0, 0, 0, 0, time.Local)},
+		{src: pgtype.Date{Time: time.Date(2015, 1, 1, 0, 0, 0, 0, time.Local), Status: pgtype.Present}, dst: &customDate{}, expected: customDate{t: time.Date(2015, 1, 1, 0, 0, 0, 0, time.Local)}},
 		{src: pgtype.Date{Time: time.Time{}, Status: pgtype.Null}, dst: &ptim, expected: ((*time.Time)(nil))},
 	}
 

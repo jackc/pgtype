@@ -66,6 +66,14 @@ func TestDateArraySet(t *testing.T) {
 				Status:     pgtype.Present},
 		},
 		{
+			source: []customDate{{t: time.Date(2015, 2, 1, 0, 0, 0, 0, time.UTC)}},
+			result: pgtype.DateArray{
+				Elements:   []pgtype.Date{{Time: time.Date(2015, 2, 1, 0, 0, 0, 0, time.UTC), Status: pgtype.Present}},
+				Dimensions: []pgtype.ArrayDimension{{LowerBound: 1, Length: 1}},
+				Status:     pgtype.Present,
+			},
+		},
+		{
 			source: (([]time.Time)(nil)),
 			result: pgtype.DateArray{Status: pgtype.Null},
 		},
@@ -162,6 +170,7 @@ func TestDateArrayAssignTo(t *testing.T) {
 	var timeSliceDim4 [][][][]time.Time
 	var timeArrayDim2 [2][1]time.Time
 	var timeArrayDim4 [2][1][1][3]time.Time
+	var customDateSlice []customDate
 
 	simpleTests := []struct {
 		src      pgtype.DateArray
@@ -176,6 +185,15 @@ func TestDateArrayAssignTo(t *testing.T) {
 			},
 			dst:      &timeSlice,
 			expected: []time.Time{time.Date(2015, 2, 1, 0, 0, 0, 0, time.UTC)},
+		},
+		{
+			src: pgtype.DateArray{
+				Elements:   []pgtype.Date{{Time: time.Date(2015, 2, 1, 0, 0, 0, 0, time.UTC), Status: pgtype.Present}},
+				Dimensions: []pgtype.ArrayDimension{{LowerBound: 1, Length: 1}},
+				Status:     pgtype.Present,
+			},
+			dst:      &customDateSlice,
+			expected: []customDate{{t: time.Date(2015, 2, 1, 0, 0, 0, 0, time.UTC)}},
 		},
 		{
 			src:      pgtype.DateArray{Status: pgtype.Null},
