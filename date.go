@@ -1,6 +1,7 @@
 package pgtype
 
 import (
+	"database/sql"
 	"database/sql/driver"
 	"encoding/binary"
 	"encoding/json"
@@ -32,6 +33,14 @@ func (dst *Date) Set(src interface{}) error {
 		if value2 != value {
 			return dst.Set(value2)
 		}
+	}
+
+	if value, ok := src.(interface{ Value() (driver.Value, error) }); ok {
+		v, err := value.Value()
+		if err != nil {
+			return fmt.Errorf("cannot get value %v for Date: %v", value, err)
+		}
+		return dst.Set(v)
 	}
 
 	switch value := src.(type) {
@@ -76,6 +85,24 @@ func (dst Date) Get() interface{} {
 }
 
 func (src *Date) AssignTo(dst interface{}) error {
+	if scanner, ok := dst.(sql.Scanner); ok {
+		var err error
+		switch src.Status {
+		case Present:
+			if src.InfinityModifier != None {
+				err = scanner.Scan(src.InfinityModifier.String())
+			} else {
+				err = scanner.Scan(src.Time)
+			}
+		case Null:
+			err = scanner.Scan(nil)
+		}
+		if err != nil {
+			return fmt.Errorf("unable assign %v to %T: %s", src, dst, err)
+		}
+		return nil
+	}
+
 	switch src.Status {
 	case Present:
 		switch v := dst.(type) {
