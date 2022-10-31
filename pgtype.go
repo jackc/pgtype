@@ -84,7 +84,6 @@ const (
 	TstzrangeArrayOID   = 3911
 	Int8rangeOID        = 3926
 	Int8multirangeOID   = 4536
-	LtreeOID            = 16407
 )
 
 type Status byte
@@ -328,7 +327,6 @@ func NewConnInfo() *ConnInfo {
 	ci.RegisterDataType(DataType{Value: &Varbit{}, Name: "varbit", OID: VarbitOID})
 	ci.RegisterDataType(DataType{Value: &Varchar{}, Name: "varchar", OID: VarcharOID})
 	ci.RegisterDataType(DataType{Value: &XID{}, Name: "xid", OID: XIDOID})
-	ci.RegisterDataType(DataType{Value: &Ltree{}, Name: "ltree", OID: LtreeOID})
 
 	registerDefaultPgTypeVariants := func(name, arrayName string, value interface{}) {
 		ci.RegisterDefaultPgType(value, name)
