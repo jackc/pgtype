@@ -2,6 +2,7 @@ package pgtype
 
 import (
 	"database/sql/driver"
+	"fmt"
 )
 
 type Ltree Text
@@ -42,7 +43,20 @@ func (dst *Ltree) DecodeText(ci *ConnInfo, src []byte) error {
 }
 
 func (dst *Ltree) DecodeBinary(ci *ConnInfo, src []byte) error {
-	return (*Text)(dst).DecodeBinary(ci, src)
+	if src == nil {
+		*dst = Ltree{Status: Null}
+		return nil
+	}
+
+	// Get Ltree version, only 1 is allowed
+	version := src[0]
+	if version != 1 {
+		return fmt.Errorf("unsupported ltree version %d", version)
+	}
+
+	ltreeStr := string(src[1:])
+	*dst = Ltree{String: ltreeStr, Status: Present}
+	return nil
 }
 
 func (Ltree) PreferredParamFormat() int16 {
