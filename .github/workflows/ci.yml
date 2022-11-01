@@ -43,6 +43,14 @@ jobs:
         PGPASSWORD: secret
         PGSSLMODE: disable
 
+    - name: Create ltree extension
+      run: psql -c 'create extension ltree'
+      env:
+        PGHOST: localhost
+        PGUSER: postgres
+        PGPASSWORD: secret
+        PGSSLMODE: disable
+
     - name: Test
       run: go test -v ./...
       env:
