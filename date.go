@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgio"
@@ -138,6 +139,15 @@ func (dst *Date) DecodeText(ci *ConnInfo, src []byte) error {
 	case "-infinity":
 		*dst = Date{Status: Present, InfinityModifier: -Infinity}
 	default:
+		if strings.HasSuffix(sbuf, " BC") {
+			t, err := time.ParseInLocation("2006-01-02", strings.TrimRight(sbuf, " BC"), time.UTC)
+			t2 := time.Date(1-t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), t.Location())
+			if err != nil {
+				return err
+			}
+			*dst = Date{Time: t2, Status: Present}
+			return nil
+		}
 		t, err := time.ParseInLocation("2006-01-02", sbuf, time.UTC)
 		if err != nil {
 			return err
