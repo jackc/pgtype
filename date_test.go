@@ -76,6 +76,7 @@ func TestDateSet(t *testing.T) {
 		{source: time.Date(2200, 1, 1, 0, 0, 0, 0, time.UTC), result: pgtype.Date{Time: time.Date(2200, 1, 1, 0, 0, 0, 0, time.UTC), Status: pgtype.Present}},
 		{source: _time(time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)), result: pgtype.Date{Time: time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC), Status: pgtype.Present}},
 		{source: "1999-12-31", result: pgtype.Date{Time: time.Date(1999, 12, 31, 0, 0, 0, 0, time.UTC), Status: pgtype.Present}},
+		{source: "0001-01-01 BC", result: pgtype.Date{Time: time.Date(0000, 01, 01, 0, 0, 0, 0, time.UTC), Status: pgtype.Present}},
 		{source: customDate{t: time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)}, result: pgtype.Date{Time: time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC), Status: pgtype.Present}},
 	}
 
