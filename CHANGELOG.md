@@ -1,3 +1,12 @@
+# 1.13.0 (December 1, 2022)
+
+* Fix: Reset jsonb before unmarshal (Tomas Odinas)
+* Fix: return correct zero value when UUID conversion fails (ndrpnt)
+* Fix: EncodeText for Lseg includes [ and ]
+* Support sql Value and Scan for custom date type (Hubert Krauze)
+* Support Ltree binary encoding (AmineChikhaoui)
+* Fix: dates with "BC" (jozeflami)
+
 # 1.12.0 (August 6, 2022)
 
 * Add JSONArray (Jakob Ackermann)
