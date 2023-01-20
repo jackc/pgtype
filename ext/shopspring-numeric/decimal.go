@@ -262,15 +262,27 @@ func (dst *Numeric) DecodeBinary(ci *pgtype.ConnInfo, src []byte) error {
 	if err := num.DecodeBinary(ci, src); err != nil {
 		return err
 	}
-
+	nanInfinityNegativeInfinityAware := pgtype.GetConfig().GetNaNInfinityNegativeInfinityAware()
 	if num.NaN {
-		return errors.New("cannot decode 'NaN'")
+		if !nanInfinityNegativeInfinityAware {
+			return errors.New("cannot decode 'NaN'")
+		}
+		*dst = Numeric{Status: pgtype.PresentNaN}
+		return nil
 	}
 	if num.InfinityModifier == pgtype.Infinity {
-		return errors.New("cannot decode 'Infinity'")
+		if !nanInfinityNegativeInfinityAware {
+			return errors.New("cannot decode 'Infinity'")
+		}
+		*dst = Numeric{Status: pgtype.PresentInfinity}
+		return nil
 	}
 	if num.InfinityModifier == pgtype.NegativeInfinity {
-		return errors.New("cannot decode '-Infinity'")
+		if !nanInfinityNegativeInfinityAware {
+			return errors.New("cannot decode '-Infinity'")
+		}
+		*dst = Numeric{Status: pgtype.PresentNegativeInfinity}
+		return nil
 	}
 
 	*dst = Numeric{Decimal: decimal.NewFromBigInt(num.Int, num.Exp), Status: pgtype.Present}

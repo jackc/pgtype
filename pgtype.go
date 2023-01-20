@@ -92,6 +92,9 @@ const (
 	Undefined Status = iota
 	Null
 	Present
+	PresentNaN
+	PresentInfinity
+	PresentNegativeInfinity
 )
 
 type InfinityModifier int8
@@ -618,7 +621,7 @@ func (scanPlanSQLScanner) Scan(ci *ConnInfo, oid uint32, formatCode int16, src [
 		}
 		if src == nil {
 			// Ensure the pointer points to a zero version of the value
-			dv.Elem().Set(reflect.Zero(dv.Elem().Type()))
+			dv.Elem().Set(reflect.Zero(dv.Type()))
 			return nil
 		}
 		dv = dv.Elem()
