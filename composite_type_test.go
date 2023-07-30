@@ -167,7 +167,7 @@ func TestCompositeTypeTranscode(t *testing.T) {
 
 create type ct_test as (
 	a text,
-  b int4
+	b int4
 );`)
 	require.NoError(t, err)
 	defer conn.Exec(context.Background(), "drop type ct_test")
