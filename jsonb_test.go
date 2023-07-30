@@ -90,7 +90,7 @@ func TestJSONBAssignTo(t *testing.T) {
 			t.Errorf("%d: %v", i, err)
 		}
 
-		if bytes.Compare(tt.expected, *tt.dst) != 0 {
+		if !bytes.Equal(tt.expected, *tt.dst) {
 			t.Errorf("%d: expected %v to assign %v, but result was %v", i, tt.src, tt.expected, *tt.dst)
 		}
 	}

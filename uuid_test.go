@@ -113,7 +113,7 @@ func TestUUIDAssignTo(t *testing.T) {
 			t.Error(err)
 		}
 
-		if bytes.Compare(dst, expected) != 0 {
+		if !bytes.Equal(dst, expected) {
 			t.Errorf("expected %v to assign %v, but result was %v", src, expected, dst)
 		}
 	}
