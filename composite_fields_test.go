@@ -152,7 +152,7 @@ func TestCompositeFieldsEncode(t *testing.T) {
 
 create type cf_encode as (
 	a text,
-  b int4,
+	b int4,
 	c text,
 	d float8,
 	e text
