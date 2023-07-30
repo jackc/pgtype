@@ -84,7 +84,7 @@ func ForceEncoder(e interface{}, formatCode int16) interface{} {
 		}
 	case pgx.BinaryFormatCode:
 		if e, ok := e.(pgtype.BinaryEncoder); ok {
-			return forceBinaryEncoder{e: e.(pgtype.BinaryEncoder)}
+			return forceBinaryEncoder{e: e}
 		}
 	}
 	return nil
