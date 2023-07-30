@@ -56,7 +56,7 @@ func TestMacaddrAssignTo(t *testing.T) {
 			t.Error(err)
 		}
 
-		if bytes.Compare([]byte(dst), []byte(expected)) != 0 {
+		if !bytes.Equal([]byte(dst), []byte(expected)) {
 			t.Errorf("expected %v to assign %v, but result was %v", src, expected, dst)
 		}
 	}

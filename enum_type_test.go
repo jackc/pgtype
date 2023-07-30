@@ -130,7 +130,7 @@ func TestEnumTypeAssignTo(t *testing.T) {
 		err = enumType.AssignTo(tt.dst)
 		require.NoError(t, err, "%d", i)
 
-		if bytes.Compare(*tt.dst, tt.expected) != 0 {
+		if !bytes.Equal(*tt.dst, tt.expected) {
 			t.Errorf("%d: expected %v to assign %v, but result was %v", i, tt.src, tt.expected, tt.dst)
 		}
 	}
