@@ -100,22 +100,29 @@ func (src *UUID) AssignTo(dst interface{}) error {
 
 // parseUUID converts a string UUID in standard form to a byte array.
 func parseUUID(src string) (dst [16]byte, err error) {
+	var uuidBuf [32]byte
+	srcBuf := uuidBuf[:]
+
 	switch len(src) {
 	case 36:
-		src = src[0:8] + src[9:13] + src[14:18] + src[19:23] + src[24:]
+		copy(srcBuf[0:8], src[:8])
+		copy(srcBuf[8:12], src[9:13])
+		copy(srcBuf[12:16], src[14:18])
+		copy(srcBuf[16:20], src[19:23])
+		copy(srcBuf[20:], src[24:])
 	case 32:
 		// dashes already stripped, assume valid
+		copy(srcBuf, src)
+
 	default:
 		// assume invalid.
 		return dst, fmt.Errorf("cannot parse UUID %v", src)
 	}
 
-	buf, err := hex.DecodeString(src)
+	_, err = hex.Decode(dst[:], srcBuf)
 	if err != nil {
 		return dst, err
 	}
-
-	copy(dst[:], buf)
 	return dst, err
 }
 
