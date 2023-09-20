@@ -31,7 +31,7 @@ func DatabaseSQLValue(ci *ConnInfo, src Value) (interface{}, error) {
 
 func EncodeValueText(src TextEncoder) (interface{}, error) {
 	var encBuf [36]byte
-	buf, err := src.EncodeText(nil, encBuf[:])
+	buf, err := src.EncodeText(nil, encBuf[:0])
 	if err != nil {
 		return nil, err
 	}
