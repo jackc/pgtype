@@ -423,3 +423,22 @@ func TestNumericEncodeDecodeBinary(t *testing.T) {
 		}
 	}
 }
+
+// https://github.com/jackc/pgtype/issues/210
+func TestNumericSmallNegativeValues(t *testing.T) {
+	n := pgtype.Numeric{}
+	err := n.Set("-0.000123")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	s := ""
+	err = n.AssignTo(&s)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if s != "-0.000123" {
+		t.Fatalf("expected %s, got %s", "-0.000123", s)
+	}
+}
