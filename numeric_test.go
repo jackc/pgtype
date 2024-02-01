@@ -385,6 +385,7 @@ func TestNumericEncodeDecodeBinary(t *testing.T) {
 		123,
 		0.000012345,
 		1.00002345,
+		50.000000,
 		math.NaN(),
 		float32(math.NaN()),
 		math.Inf(1),
@@ -440,5 +441,24 @@ func TestNumericSmallNegativeValues(t *testing.T) {
 
 	if s != "-0.000123" {
 		t.Fatalf("expected %s, got %s", "-0.000123", s)
+	}
+}
+
+// https://github.com/jackc/pgtype/issues/210
+func TestNumericFloat64(t *testing.T) {
+	n := pgtype.Numeric{
+		Int:    big.NewInt(5),
+		Exp:    1,
+		Status: pgtype.Present,
+	}
+
+	var f float64
+	err := n.AssignTo(&f)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if f != 50.0 {
+		t.Fatalf("expected %s, got %f", "50", f)
 	}
 }
