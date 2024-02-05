@@ -445,7 +445,7 @@ func TestNumericSmallNegativeValues(t *testing.T) {
 }
 
 // https://github.com/jackc/pgtype/issues/210
-func TestNumericFloat64FromIntegers(t *testing.T) {
+func TestNumericFloat64Exhaustive(t *testing.T) {
 	for exp := -10; exp <= 10; exp++ {
 		for i := -100; i < 100; i++ {
 			n := pgtype.Numeric{
