@@ -445,20 +445,26 @@ func TestNumericSmallNegativeValues(t *testing.T) {
 }
 
 // https://github.com/jackc/pgtype/issues/210
-func TestNumericFloat64(t *testing.T) {
-	n := pgtype.Numeric{
-		Int:    big.NewInt(5),
-		Exp:    1,
-		Status: pgtype.Present,
-	}
+func TestNumericFloat64FromIntegers(t *testing.T) {
+	for exp := -10; exp <= 10; exp++ {
+		for i := -100; i < 100; i++ {
+			n := pgtype.Numeric{
+				Int:    big.NewInt(int64(i)),
+				Exp:    int32(exp),
+				Status: pgtype.Present,
+			}
 
-	var f float64
-	err := n.AssignTo(&f)
-	if err != nil {
-		t.Fatal(err)
-	}
+			var got float64
+			err := n.AssignTo(&got)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-	if f != 50.0 {
-		t.Fatalf("expected %s, got %f", "50", f)
+			want := float64(i) * math.Pow10(exp)
+			delta := math.Abs(want * 0.0000000001)
+			if math.Abs(got-want) > delta {
+				t.Fatalf("expected %f from %de%d, got %f", want, i, exp, got)
+			}
+		}
 	}
 }
