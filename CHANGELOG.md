@@ -1,3 +1,7 @@
+# 1.14.2 (February 5, 2024)
+
+* Fix numeric to float64 conversion (Joe Schafer)
+
 # 1.14.1 (January 12, 2024)
 
 * Backport fix numeric to string conversion for small negative values
