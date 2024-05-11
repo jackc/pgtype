@@ -15,6 +15,8 @@ const pgTimestamptzMinuteFormat = "2006-01-02 15:04:05.999999999Z07:00"
 const pgTimestamptzSecondFormat = "2006-01-02 15:04:05.999999999Z07:00:00"
 const microsecFromUnixEpochToY2K = 946684800 * 1000000
 
+var CustomTimeLocation *time.Location
+
 const (
 	negativeInfinityMicrosecondOffset = -9223372036854775808
 	infinityMicrosecondOffset         = 9223372036854775807
@@ -160,6 +162,9 @@ func (dst *Timestamptz) DecodeBinary(ci *ConnInfo, src []byte) error {
 			microsecFromUnixEpochToY2K/1000000+microsecSinceY2K/1000000,
 			(microsecFromUnixEpochToY2K%1000000*1000)+(microsecSinceY2K%1000000*1000),
 		)
+		if CustomTimeLocation != nil {
+			tim = tim.In(CustomTimeLocation)
+		}
 		*dst = Timestamptz{Time: tim, Status: Present}
 	}
 
