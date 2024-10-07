@@ -4,7 +4,6 @@ import (
 	"database/sql/driver"
 	"encoding/binary"
 	"fmt"
-	"math"
 	"strconv"
 
 	"github.com/jackc/pgio"
@@ -25,9 +24,6 @@ func (dst *pguint64) Set(src interface{}) error {
 	case int64:
 		if value < 0 {
 			return fmt.Errorf("%d is less than minimum value for pguint64", value)
-		}
-		if value > math.MaxUint64 {
-			return fmt.Errorf("%d is greater than maximum value for pguint64", value)
 		}
 		*dst = pguint64{Uint: uint64(value), Status: Present}
 	case uint64:
