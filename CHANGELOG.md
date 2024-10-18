@@ -1,3 +1,11 @@
+# 1.14.4 (October 18, 2024)
+
+* Update pgx to v4.18.3
+
+# 1.14.3 (March 12, 2024)
+
+* Update pgx to v4.18.2
+
 # 1.14.2 (February 5, 2024)
 
 * Fix numeric to float64 conversion (Joe Schafer)
