@@ -19,6 +19,7 @@ func (src *JSONB) AssignTo(dst interface{}) error {
 	return (*JSON)(src).AssignTo(dst)
 }
 
+// JSONB performance penalty for binary format - see upstream postgresql.org/message-id/CAMovtNoHFod2jMAKQjjxv209PCTJx5Kc66anwWvX0mEiaXwgmA%40mail.gmail.com 
 func (JSONB) PreferredResultFormat() int16 {
 	return TextFormatCode
 }
