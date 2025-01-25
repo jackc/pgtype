@@ -3,8 +3,8 @@
 
 ---
 
-This version is used with pgx `v4`. In pgx `v5` it is part of the https://github.com/jackc/pgx repository. Only bug
-fixes will be made to this version. New features will only be considered for the current release.
+This version is used with pgx `v4`. In pgx `v5` it is part of the https://github.com/jackc/pgx repository. This `v4`
+version will reach end-of-life on July 1, 2025. Only security bug fixes will be made to this version.
 
 ---
 
